@@ -1,0 +1,518 @@
+/* Ensure html and body take full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  width: 100vw;
+  background-color: #cfcdcd;
+}
+
+/* This makes the container stretch full height and use flexbox */
+.container {
+  display: flex;
+  height: 10vh;
+  flex: 1;
+  max-width: 100%;
+  gap: 25px;
+}
+    /* Sidebar */
+
+    /* add ko lng */
+    nav a {
+  color: white;
+  background-color: #e4e9ecbd;
+  padding: 10px 15px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin: 5px;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+nav a:hover {
+  background-color: #a309eb;
+}
+
+nav a.active {
+  background-color: #7b099e;
+}
+/* add ko lng */
+
+p{
+  font-size: large;
+  font-weight: 50%;
+}
+    
+
+
+
+aside.sidebar {
+    position: fixed;
+    left: -350px;
+    top: 0;
+    height: 100%;
+    width: 280px;
+
+    /* Glassmorphism background */
+    background: rgba(26, 26, 26, 0.5); /* semi-transparent */
+    backdrop-filter: blur(10px);        /* blur behind */
+    -webkit-backdrop-filter: blur(10px); /* for Safari */
+
+    color: white;
+    padding: 1rem;
+    box-sizing: border-box;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+
+    border-right: 1px solid rgba(255, 255, 255, 0.2); /* subtle glass border */
+    align-items: center;
+}
+
+
+/* Sidebar visible */
+aside.sidebar.active {
+  left: 0;
+}
+
+/* Burger button */
+.burger-menu {
+  display: flex;
+  align-items: center;   /* vertically center button + text */
+}
+.burger-btn:hover{
+  background-color: #550b92;
+        box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.712);
+        color: #fff;
+        transform: translateY(-7px);
+}
+.text-btn{
+  font-family: Arial, sans-serif; 
+  padding: 7px 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 600;
+  font-weight: lighter;
+}
+
+.burger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+   gap: 10px;
+  background-color: #cccccc;
+  padding: 4px;
+  border-radius: 18px;
+  padding: 6px 13px;
+  transition: all 0.3s ease 0s;
+}
+
+
+.burger-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.logout-btn {
+  background: #d1d5db;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.logout-btn:hover {
+  background: #9ca3af;
+}
+
+.top-bar-spacer {
+  flex: 1; /* pushes logout button to the far right */
+}
+.page-title{
+  text-align: center;
+  margin: 40px 0px 40px 0px;
+  font-family: Arial, sans-serif; 
+  letter-spacing: 2px;
+  font-size: 30px;
+  text-transform: uppercase;
+  font-weight: lighter;
+}
+.text-title{
+  background: #f9f9f9;
+  box-shadow: 18px 4px 20px rgba(0, 0, 0, 0.2);
+  width: 15em;
+  justify-self: center;
+  padding: 10px 15px;
+  border-radius: 10px;
+}
+
+    aside.sidebar .logo-container {
+      background: #a3a3a3;
+      margin: 0 24px;
+      border-radius: 24px;
+      padding: 16px 0;
+      text-align: center;
+      color: #1a1a1a;
+    }
+    aside.sidebar .logo-container img {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      display: block;
+      margin: 0 auto;
+    }
+    aside.sidebar nav {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-left: 24px;
+    }
+    .not-active {
+      color: rgb(0, 0, 0);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    .active{
+      color: rgb(248, 248, 248);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    aside.sidebar nav a.active,
+    aside.sidebar nav a:hover {
+      background-color: #4b4b4b;
+      color: white;
+    }
+    aside.sidebar .admin-container {
+      background: #a3a3a3;
+      margin: 0 24px 24px 24px;
+      border-radius: 24px;
+      padding: 16px 0;
+      text-align: center;
+      color: #1a1a1a;
+    }
+    aside.sidebar .admin-container img {
+      width: 120px;
+      height: 140px;
+      border-radius: 48px 48px 0 0;
+      display: block;
+      margin: 0 auto;
+    }
+   /* Main content fills remaining space */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  
+}
+    .top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* menu left, logout right */
+  background: #f9f9f9;
+  padding: 10px 20px;
+  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+}
+
+
+    .top-bar .logout-btn {
+      padding: 1.3em 3em;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        font-weight: 500;
+        color: #000;
+        background-color: #cccccc;
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease 0s;
+        cursor: pointer;
+        outline: none;
+     }
+    button[type='button']:hover {
+        background-color: #550b92;
+        box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.712);
+        color: #fff;
+        transform: translateY(-7px);
+      }
+       
+
+    .top-bar .btn i {
+      font-size: 14px;
+    }
+
+    .btn:hover{
+         background-color: #550b92;
+        box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.712);
+        color: #fff;
+        transform: translateY(-7px);
+
+    }
+/* --- NAV LOGO --- */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* if you want space between logo & text later */
+  margin-right: 1em;
+}
+
+.nav-logo img {
+  height: 45px;       /* adjust size */
+  width: auto;        /* keep proportions */
+  object-fit: contain;
+  border-radius: 50%; /* optional, for rounded corners */
+}
+
+    .content {
+      background: #8b7f7f;
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      height:390px;
+      max-width: max-content;
+    }
+
+
+
+    /*table*/
+    .table-container {
+   max-height: 500px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 12px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 94%;
+      max-width: 1200px;
+      margin: 2em auto;
+}
+
+table {
+ width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  border-radius: 16px;
+    border-collapse: collapse;
+  overflow: hidden;
+
+}
+
+th, td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+th {
+  background-color: #f5f5f5;
+}
+
+    .btn-view, .btn-remove, .btn-reaccept {
+  padding: 6px 12px;
+  margin: 2px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.btn-view {
+  background-color: #2563eb;
+  color: white;
+}
+
+.btn-remove {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-reaccept {
+  background-color: #059669;
+  color: white;
+}
+
+.btn-view:hover {
+  background-color: #1e40af;
+}
+
+.btn-remove:hover {
+  background-color: #991b1b;
+}
+
+.btn-reaccept:hover {
+  background-color: #047857;
+}
+.archive-btn {
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.archive-btn:hover {
+  background-color: #4b5563;
+  transform: translateY(-2px);
+}
+/* Archive confirmation modal */
+.archive-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  align-items: center;
+  justify-content: center;
+}
+
+.archive-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+}
+
+.archive-modal-box {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px;
+  width: 420px;
+  max-width: calc(100% - 32px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.archive-modal-box header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.archive-modal-body p { margin: 0; color: #374151; font-size: 0.95rem; }
+
+.archive-modal-footer {
+  display:flex;
+  justify-content:flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Button styles (adapt to your existing button classes) */
+.btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.cancel-archive-btn {
+  background: #f3f4f6;
+  color: #111827;
+}
+.confirm-archive-btn {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Modal Overlay */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+/* Modal Content (landscape layout) */
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-left {
+  flex: 1.5;
+}
+.modal-left input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-right img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* Close Button */
+.close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #888;
+}
+
+.close:hover {
+  color: red;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+

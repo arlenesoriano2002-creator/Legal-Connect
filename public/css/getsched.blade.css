@@ -1,0 +1,533 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, #e3e4e5 0%, #161318 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 30px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Calendar Section */
+.calendar-section {
+  padding: 40px;
+  background: #f8fafc;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.back-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.month-navigation {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-btn {
+  background: white;
+  border: 2px solid #e2e8f0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.nav-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.month-year {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  min-width: 200px;
+  text-align: center;
+}
+
+/* Calendar Grid */
+.calendar {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.weekdays div {
+  padding: 10px;
+  font-size: 14px;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+  background: white;
+}
+
+.day:hover:not(.disabled):not(.not-clickable):not(.selected) {
+  background: #e0e7ff;
+  border-color: #3b82f6;
+  transform: scale(1.05);
+}
+
+.day.disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.day.selected {
+  background: #3b82f6;
+  color: white;
+  font-weight: 700;
+  border-color: #1d4ed8;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.day.today {
+  background: #fbbf24;
+  color: #78350f;
+  font-weight: 700;
+}
+
+/* Calendar Day Colors */
+.day.color-green {
+  background-color: #dcfce7 !important;
+  border: 2px solid #22c55e !important;
+  color: #166534 !important;
+}
+
+.day.color-green:not(.not-clickable):hover {
+  background-color: #bbf7d0 !important;
+  border-color: #16a34a !important;
+  transform: scale(1.05);
+}
+
+.day.color-red {
+  background-color: #fee2e2 !important;
+  border: 2px solid #ef4444 !important;
+  color: #991b1b !important;
+}
+
+.day.color-orange {
+  background-color: #ffedd5 !important;
+  border: 2px solid #f97316 !important;
+  color: #9a3412 !important;
+}
+
+.day.color-gray {
+  background-color: #f3f4f6 !important;
+  border: 2px solid #9ca3af !important;
+  color: #6b7280 !important;
+}
+
+.day.not-clickable {
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.day.not-clickable:hover {
+  transform: none !important;
+}
+
+/* Time Slots Section */
+.time-section {
+  background: white;
+  padding: 40px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.time-section h2 {
+  color: #1e293b;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.selected-date {
+  color: #64748b;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+.time-slots-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.time-slot {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #475569;
+  position: relative;
+  display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 12px 8px;
+    min-height: 60px;
+    justify-content: center;
+}
+.time-display {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+.time-slot:hover:not(.disabled):not(.selected) {
+  border-color: #3b82f6;
+  background: #e0e7ff;
+  transform: translateY(-2px);
+}
+
+.time-slot.selected {
+  background: #3b82f6;
+  color: white;
+  border-color: #1d4ed8;
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.slot-details {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.8;
+    line-height: 1.2;
+}
+.time-slot:hover:not(.disabled):not(.selected) .time-display {
+    transform: translateY(-1px);
+}
+
+.time-slot:hover:not(.disabled):not(.selected) .slot-details {
+    opacity: 1;
+}
+
+.time-slot.disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Time Slot Colors */
+.time-slot.color-green {
+  background: #dcfce7 !important;
+  border: 2px solid #22c55e !important;
+  color: #166534 !important;
+}
+
+.time-slot.color-green:hover:not(.disabled):not(.selected) {
+  background: #bbf7d0 !important;
+  border-color: #16a34a !important;
+  transform: translateY(-2px);
+}
+
+.time-slot.color-green.selected {
+  background: #16a34a !important;
+  color: white !important;
+  border-color: #15803d !important;
+}
+
+.time-slot.color-red {
+  background: #fee2e2 !important;
+  border: 2px solid #ef4444 !important;
+  color: #991b1b !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.time-slot.color-orange {
+  background: #ffedd5 !important;
+  border: 2px solid #f97316 !important;
+  color: #9a3412 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.time-slot.color-gray {
+  background: #f3f4f6 !important;
+  border: 2px solid #9ca3af !important;
+  color: #6b7280 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Selection Info & Next Button */
+.selection-info {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px 0;
+  text-align: center;
+}
+
+.selection-info h3 {
+  color: #065f46;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.selection-info p {
+  color: #047857;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.next-btn {
+  width: 100%;
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.next-btn:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.next-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+  padding: 40px 20px;
+}
+
+/* Tooltip styles */
+.day[title]:hover::after,
+.time-slot[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 8px;
+  pointer-events: none;
+}
+
+.day[title]:hover::after {
+  bottom: 100%;
+}
+
+.time-slot[title]:hover::after {
+  bottom: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+  }
+  
+  .time-section {
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .month-navigation {
+    order: -1;
+  }
+  
+  .calendar-section,
+  .time-section {
+    padding: 20px;
+  }
+  
+  .days-grid {
+    gap: 4px;
+  }
+  
+  .day {
+    font-size: 14px;
+  }
+}
+
+/* Scrollbar Styling */
+.time-slots-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.time-slots-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.time-slots-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.time-slots-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+/* Time slot styles - Default (no color) */
+.time-slot {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 5px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    background-color: #f8fafc; /* Light gray background for no color */
+    color: #6b7280; /* Gray text for no color */
+    border-style: dashed; /* Dashed border to indicate "not set" */
+}
+
+/* Colored time slots */
+.time-slot.color-green {
+    background-color: #16a34a !important;
+    color: white !important;
+    border-style: solid; /* Solid border for set colors */
+}
+
+.time-slot.color-red {
+    background-color: #dc2626 !important;
+    color: white !important;
+    border-style: solid;
+}
+
+.time-slot.color-orange {
+    background-color: #ea580c !important;
+    color: white !important;
+    border-style: solid;
+}
+
+/* Hover effects */
+.time-slot:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.time-slot.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.time-slot.selected {
+    border: 2px solid #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Special styling for lunch time */
+.time-slot[title="Lunch time"] {
+    font-weight: bold;
+}
+
+/* Styling for "not set" time slots */
+.time-slot[title="Not set yet"] {
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+}
+

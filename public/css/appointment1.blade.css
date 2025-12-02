@@ -1,0 +1,337 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-size: 70px;
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(227, 225, 225);
+  background-size: 100%;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.container {
+  display: flex;
+  background: rgb(255, 253, 253);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  width: 90%;
+  max-width: 1000px; /* Increased max-width */
+}
+
+.left {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+
+.logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+  align-self: center; /* Center the logo */
+}
+
+h1 {
+  font-weight: 400;
+  font-size: 17px;
+  margin: 0 0 5px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgb(255, 255, 255);
+  max-width: max-content;
+}
+h2 {
+  font-weight: 400;
+  font-size: 16px;
+  margin: 0 0 16px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid black;
+  max-width: max-content;
+}
+
+/* Remove the fixed max-width from form */
+form {
+  width: 100%;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+select {
+  width: 100%;
+  background-color: #ffffff;
+  border: solid black 1.5px;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 400;
+  outline: none;
+  margin-bottom: 14px;
+  font-family: 'Montserrat', sans-serif;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='black'%3e%3cpath d='M4 6l4 4 4-4z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  cursor: pointer;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+button {
+  padding: 1.3em 3em;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  color: #000;
+  background-color:#cccccc;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
+  cursor: pointer;
+  outline: none;
+}
+
+button:hover {
+    color: #000;
+    transform: none;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+  transform: translateY(-1px);
+}
+
+.right {
+  flex: 1 1 50%;
+  max-width: 600px;
+  overflow: hidden;
+  display: block;
+}
+
+.right img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Case Categories Styles */
+.case-categories-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.case-category-card {
+  background: #ffffff;
+  border: 1.5px solid #000000;
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.3s ease;
+  /* Remove fixed width to allow responsive sizing */
+}
+
+.case-category-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.case-category-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.case-category-card select {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1.5px solid #000000;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 400;
+  outline: none;
+  font-family: 'Montserrat', sans-serif;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='black'%3e%3cpath d='M4 6l4 4 4-4z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px;
+  cursor: pointer;
+}
+
+.case-category-card select:focus {
+  border-color: #550b92;
+}
+
+.no-categories {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  color: #6c757d;
+}
+
+/* Form Appointment Layout */
+.form-appointment {
+  display: flex;
+  flex-direction: row;
+  justify-content: center; /* Center the form content */
+  align-items: flex-start; /* Align items to top */
+  gap: 30px; /* Increased gap for better spacing */
+  width: 100%;
+  margin: 0 auto; /* Center the entire form */
+}
+
+.personal-info {
+  flex: 1;
+  max-width: 400px; /* Limit maximum width */
+}
+
+.categories-case {
+  flex: 1;
+  max-width: 400px; /* Limit maximum width */
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    border-radius: 24px;
+    margin: 20px;
+  }
+  
+  .right {
+    max-width: 100%;
+    border-radius: 0 0 24px 24px;
+    margin-top: 24px;
+  }
+  
+  .right img {
+    border-radius: 0 0 24px 24px;
+  }
+  
+  .left {
+    max-width: 100%;
+    padding: 32px 24px;
+  }
+  
+  .form-appointment {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .personal-info,
+  .categories-case {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .case-categories-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin: 10px;
+  }
+  
+  .left {
+    padding: 16px;
+  }
+  
+  .form-appointment {
+    gap: 15px;
+  }
+}
+.form-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0 auto;
+    background-color: black;
+    color: white;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-top-left-radius: 10px;     
+    border-top-right-radius: 10px;    
+    border-bottom-left-radius: 0;     
+    border-bottom-right-radius: 0;
+}
+
+.title-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the h1 and p horizontally */
+    text-align: center;
+    width: 100%;
+}
+
+ p {
+    margin-bottom: 20px !important;
+    margin-top: 5px !important;
+
+}

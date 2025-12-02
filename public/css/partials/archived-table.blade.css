@@ -1,0 +1,380 @@
+/*------TABLE-------*/
+.table-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  margin: 20px auto;
+  max-width: 95%;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+/*------ FIXED & ALIGNED TABLE DESIGN -------*/
+/* ---------------- TABLE FIX ---------------- */
+.table-container {
+  background: #ffffff;
+  border-radius: 10px;
+  margin: 40px auto;
+  max-width: 95%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 0; /* ensure no padding offsets header alignment */
+  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
+
+/* Scroll wrapper */
+.table-wrapper {
+  width: 1300px;
+  max-height: 500px;
+
+}
+
+/* Keep table as native table, not block */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* ensures equal column widths */
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #111827;
+  font-size: 1rem;
+}
+
+/* Header */
+.admin-table thead {
+  background-color: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 4em;
+}
+
+.admin-table th {
+  padding: 14px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Body */
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Hover effect */
+.admin-table tbody tr:hover {
+  background-color: #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+/* Zebra effect */
+.admin-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Buttons inside table */
+.image-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.image-btn:hover {
+  background: #1d4ed8;
+}
+
+
+.icon-delete-btn {
+    background: #d9534f;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    height: 3rem;
+}
+
+.icon-delete-btn i {
+    font-size: 30px;
+}
+
+.icon-delete-btn:hover {
+    background: #b84542;
+    transform: scale(1.08);
+}
+
+/* ----- IMAGE MODAL ----- */
+.image-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-modal.show {
+  display: flex;
+}
+
+.image-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.image-modal-content {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: rgba(229, 3, 3, 0.6);
+  color: white;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.image-modal-img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+
+/* small screen tweaks */
+@media (max-width: 640px) {
+  .image-modal-content {
+    padding: 10px;
+    width: 95%;
+  }
+  .image-modal-close { top: 6px; right: 6px; width: 32px; height: 32px; }
+}
+/* 🔹 Make table fill the modal and show full content */
+/* -------- Wider modal + full-width table inside -------- */
+/* Make dialog take most of viewport width (responsive) */
+.admin-modal {
+  width: 90vw;          /* use 95% of viewport width */
+  max-width: 900px;    /* hard cap so it doesn't get too huge on very large screens */
+  left: 50% !important; /* ensure centered if browser uses absolute positioning */
+  transform: translateX(-50%); 
+}
+
+/* Modal content/body should fit new width and remain scrollable */
+.admin-modal .modal-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-modal .modal-body {
+  width: 95%;
+  max-height: 75vh; /* keep modal height bounded and scrollable */
+  overflow: auto;   /* both vertical and horizontal scroll when needed */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Make table wrapper flexible (no forced fixed width) */
+.table-wrapper {
+  width: 100% !important;
+  max-width: none !important;
+  overflow: auto;   /* allow horizontal scroll if columns overflow */
+  box-sizing: border-box;
+}
+
+/* Let the table fill the wrapper and size columns to content */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* allow columns to size based on content */
+  min-width: 1100px;  /* optional: ensures good minimum width so columns don't collapse too small */
+}
+
+/* Wrap long text so it displays fully */
+.admin-table th,
+.admin-table td {
+  white-space: normal !important;    /* allow wrapping */
+  word-break: break-word !important; /* break very long words/URLs */
+  overflow: visible !important;
+  text-overflow: unset !important;
+  padding: 10px 12px;
+}
+
+/* Keep header sticky but inside modal scroll */
+.admin-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #f9fafb;
+}
+
+/* Buttons stay visible and not cut off */
+.admin-table td .image-btn {
+  white-space: normal;
+  display: inline-block;
+}
+
+/* Small screens fallback: make dialog near full-width */
+@media (max-width: 900px) {
+  .admin-modal { width: 96vw; max-width: 96vw; }
+  .admin-table { min-width: 900px; }
+}
+
+.image-modal,
+.delete-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* above dialogs */
+}
+
+.image-modal-backdrop,
+.delete-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+}
+
+
+.delete-modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.icon-delete-btn {
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.icon-delete-btn i { font-size: 16px; }
+.icon-delete-btn:hover { filter: brightness(0.9); }
+/*MODAL DELETE*/
+/* ===== DELETE MODAL STYLING ===== */
+.delete-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000; /* above everything */
+  font-family: "Inter", sans-serif;
+}
+
+.delete-modal.show {
+  display: flex;
+}
+
+.delete-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(3px);
+}
+
+.delete-modal-box {
+  position: relative;
+  z-index: 2;
+  width: 420px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 15px 35px rgba(0,0,0,0.25);
+  padding: 22px 25px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.delete-modal-header {
+  background: #5b1bc8; /* same purple tone as archive header */
+  color: #fff;
+  padding: 12px 18px;
+  margin: -22px -25px 18px -25px;
+  border-radius: 12px 12px 0 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.delete-modal-message {
+  font-size: 1rem;
+  margin-bottom: 18px;
+  text-align: center;
+  color: #111;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.cancel-delete-btn {
+  background: #e5e7eb;
+}
+
+.cancel-delete-btn:hover {
+  background: #d1d5db;
+}
+
+.confirm-delete-btn {
+  background: #d9534f;
+  color: white;
+  font-weight: 600;
+}
+
+.confirm-delete-btn:hover {
+  background: #b84542;
+}
+
+/* Smooth popup animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ asset('css/administrator.blade.css') }}">
+</head>
+<body>
+     <div class="container">
+    <aside class="sidebar" role="complementary" aria-label="Sidebar navigation">
+      <div>
+        <div class="logo-container">
+          <img
+            src="KG2025 (2).png"
+            alt="LegalConnect logo with black background and golden scales of justice icon"
+            width="80"
+            height="80"
+          />
+          <p>LegalConnect</p>
+        </div>
+        <nav>
+          <a href="#" class="active" tabindex="0">Set Appointment</a>
+          <a href="#" tabindex="0">Clients</a>
+          <a href="#" tabindex="0">Accepted Request</a>
+          <a href="#" tabindex="0">Denied Request</a>
+          <a href="#" tabindex="0">Account</a>
+        </nav>
+      </div>
+      
+    </aside>
+    <main>
+      <div class="top-bar" role="banner">
+        <button type="button">Set Appointment</button>
+      <div>
+          <form id="logout-form" action="{{ route('custom.logout') }}" method="POST" style="display: none;">
+              @csrf
+          </form>
+          <button type="button" class="btn" aria-label="Log out" onclick="document.getElementById('').submit();"><!----THIS PART----->
+              <i class="fas fa-sign-out-alt"></i> Add
+          </button>
+            <button type="button" class="btn" aria-label="Log out" onclick="document.getElementById('logout-form').submit();">
+              <i class="fas fa-sign-out-alt"></i> Log out
+          </button>
+      </div>
+
+    
+      </div>
+      
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Creatred at</th>
+              <th>Updated at</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="slots-table-body">
+            <tr>
+              <td>
+                <!-- Date -->
+              </td>
+              <td><!-- Time --></td>
+              <td><!-- Created at --></td>
+              <td><!-- Updated at --></td>
+  
+              <td>
+                <!-- Use this buttons to edit and delete the data inside the table -->
+                <button class="edit-btn" aria-label="">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="edit-btn" aria-label="">
+                  <i class="fas fa-edit"></i> Delete
+                </button>
+              </td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('/appointment-slots')
+    .then(response => response.json())
+    .then(slots => {
+      const tbody = document.getElementById('slots-table-body');
+      tbody.innerHTML = ''; // Clear existing rows
+
+      slots.forEach(slot => {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+          <td>${slot.date}</td>
+          <td>${slot.time}</td>
+          <td>${slot.created_at}</td>
+          <td>${slot.updated_at}</td>
+          <td>
+            <div class="time-slot">
+              <span>${slot.time}</span>
+              <button class="edit-btn" data-id="${slot.id}"><i class="fas fa-edit"></i> Edit</button>
+              <button class="delete-btn" data-id="${slot.id}"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching appointment slots:', error);
+    });
+});
+</script>
+
+
+
+
+</body>
+</html>

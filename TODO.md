@@ -1,0 +1,4 @@
+- [ ] Add account modal to welcome.blade.php
+- [ ] Add account modal to about.blade.php
+- [ ] Add account modal to testimonial.blade.php
+- [ ] Add account modal to contact.blade.php

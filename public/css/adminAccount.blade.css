@@ -1,0 +1,702 @@
+/* adminAccount.blade.css - Redesigned to match admindashboard */
+
+/* Ensure html and body take full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  width: 100vw;
+  background-color: #cfcdcd;
+  overflow-x: hidden !important;
+}
+
+/* Wrapper for sidebar and content */
+#wrapper {
+  display: flex;
+  width: 100%;
+}
+
+/* ============================= */
+/* 🔹 SIDEBAR STYLES (Match admindashboard) */
+/* ============================= */
+#sidebar-wrapper {
+  min-height: 100vh;
+  width: 220px;
+  background: #2f4050;
+  transition: all 0.3s;
+  position: fixed;
+  z-index: 1000;
+}
+
+.sidebar-heading {
+  padding: 20px 15px;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.list-group-item {
+  background-color: transparent;
+  border: none;
+  color: #a7b1c2;
+  padding: 12px 15px;
+  border-left: 4px solid transparent;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.list-group-item:hover, .list-group-item:focus {
+  background-color: #293846;
+  color: white;
+  border-left: 4px solid #19aa8d;
+}
+
+.list-group-item.active {
+  background-color: #293846;
+  color: white;
+  border-left: 4px solid #19aa8d;
+}
+
+.list-group-item i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.list-group-item .fa-chevron-down {
+  float: right;
+  margin-top: 5px;
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+.list-group-item[aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  padding-left: 30px;
+  background: #293846;
+}
+
+.submenu .list-group-item {
+  padding: 8px 15px;
+  font-size: 13px;
+}
+
+.submenu.show {
+  display: block !important;
+}
+
+.collapse:not(.show) {
+  display: none;
+}
+
+.collapsing {
+  height: 0;
+  overflow: hidden;
+  transition: height 0.35s ease;
+}
+
+/* ============================= */
+/* 🔹 PAGE CONTENT STYLES */
+/* ============================= */
+#page-content-wrapper {
+  width: calc(100% - 220px);
+  margin-left: 220px;
+  padding: 0;
+  transition: all 0.3s;
+}
+
+/* Collapsed Sidebar */
+#wrapper.toggled #sidebar-wrapper {
+  width: 70px;
+}
+
+#wrapper.toggled #page-content-wrapper {
+  width: calc(100% - 70px);
+  margin-left: 70px;
+}
+
+#wrapper.toggled .sidebar-heading,
+#wrapper.toggled .list-group-item span:not(.fa) {
+  display: none;
+}
+
+#wrapper.toggled .list-group-item {
+  text-align: center;
+  padding: 15px 10px;
+}
+
+#wrapper.toggled .list-group-item i {
+  margin-right: 0;
+  font-size: 18px;
+}
+
+#wrapper.toggled .submenu {
+  display: none !important;
+}
+
+/* ============================= */
+/* 🔹 TOP BAR STYLES */
+/* ============================= */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f9f9f9;
+  padding: 10px 20px;
+  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+}
+
+#menu-toggle {
+  margin-bottom: 0;
+  background-color: #cccccc;
+  border: none;
+  color: #000;
+  padding: 8px 16px;
+}
+
+#menu-toggle:hover {
+  background-color: #cccccc;
+    color: #000;
+    transform: none;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.top-bar-spacer {
+  flex: 1;
+}
+
+.logout-btn {
+  padding: 1.3em 3em;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  color: #000;
+  background-color: #cccccc;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
+  cursor: pointer;
+  outline: none;
+}
+
+.logout-btn:hover {
+  background-color: #cccccc;
+    color: #000;
+    transform: none;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================= */
+/* 🔹 DASHBOARD CONTENT STYLES */
+/* ============================= */
+.dashboard-container {
+  padding: 20px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-gray-800 {
+  color: #1f2937;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* ============================= */
+/* 🔹 ACCOUNT CONTENT STYLES */
+/* ============================= */
+.container {
+  display: flex;
+  min-height: 60vh;
+  flex: 1;
+  max-width: 100%;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.account-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Profile Card */
+.profile-card {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  align-items: center;
+  gap: 30px;
+  max-width: 600px;
+  margin: 0 auto;
+  border: 1px solid #e5e7eb;
+}
+
+.profile-image img {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid #e5e7eb;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.profile-info h2 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.profile-info p {
+  margin: 8px 0;
+  font-size: 16px;
+  color: #4b5563;
+}
+
+.profile-info strong {
+  color: #374151;
+}
+.toggle-btn{
+  background: #cccccc;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+/* Edit Button */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* ============================= */
+/* 🔹 MODAL STYLES */
+/* ============================= */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.modal-content label {
+  display: block;
+  margin-top: 15px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.modal-content input,
+.modal-content select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.modal-content input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Button Styles */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+}
+
+.d-flex {
+  display: flex;
+}
+
+.gap-2 {
+  gap: 10px;
+}
+
+.mb-3 {
+  margin-bottom: 15px;
+}
+
+/* Alert Styles */
+.alert {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+/* ============================= */
+/* 🔹 RESPONSIVE DESIGN */
+/* ============================= */
+
+/* Tablet Styles (768px and below) */
+@media (max-width: 768px) {
+  #sidebar-wrapper {
+    width: 70px;
+  }
+  
+  #page-content-wrapper {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+  }
+  
+  .sidebar-heading,
+  .list-group-item span:not(.fa) {
+    display: none;
+  }
+  
+  .list-group-item {
+    text-align: center;
+    padding: 15px 10px;
+  }
+  
+  .list-group-item i {
+    margin-right: 0;
+    font-size: 18px;
+  }
+  
+  .submenu {
+    display: none !important;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .profile-image img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .account-content {
+    padding: 20px;
+    margin: 10px;
+  }
+
+  .dashboard-container {
+    padding: 10px;
+  }
+}
+
+/* Mobile Styles (480px and below) */
+@media (max-width: 480px) {
+  #sidebar-wrapper {
+    width: 0;
+  }
+  
+  #page-content-wrapper {
+    width: 100%;
+    margin-left: 0;
+  }
+  
+  #wrapper.toggled #sidebar-wrapper {
+    width: 220px;
+  }
+  
+  #wrapper.toggled #page-content-wrapper {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+  }
+  
+  #wrapper.toggled .sidebar-heading,
+  #wrapper.toggled .list-group-item span:not(.fa) {
+    display: block;
+  }
+
+  .top-bar {
+    padding: 8px 12px;
+  }
+
+  .logout-btn {
+    padding: 10px 20px;
+    font-size: 11px;
+  }
+
+  .profile-info h2 {
+    font-size: 24px;
+  }
+
+  .profile-info p {
+    font-size: 14px;
+  }
+
+  .modal-content {
+    margin: 5% auto;
+    padding: 20px;
+  }
+}
+
+/* Large Desktop Styles (1200px and above) */
+@media (min-width: 1200px) {
+  .dashboard-container {
+    max-width: 1200px;
+  }
+  
+  .account-content {
+    max-width: 900px;
+  }
+}
+
+/* Animation for smooth transitions */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+/* Remove old conflicting styles */
+.burger-btn,
+.burger-menu,
+.nav-logo,
+.old-sidebar-styles {
+  display: none !important;
+}
+
+/* Additional styles for the new layout */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    padding: 15px 20px;
+}
+
+.table-responsive {
+    border-radius: 8px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #374151;
+    background-color: #f8f9fa;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Modal improvements */
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+/* Form improvements */
+.form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+.form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Alert improvements */
+.alert {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+    
+    .col-md-4, .col-md-8 {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .card-header .d-flex form {
+        width: 100%;
+    }
+}

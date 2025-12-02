@@ -1,0 +1,385 @@
+/* -------------------------------------------
+   BACKUP CARDS
+------------------------------------------- */
+.backup-card-container {
+    max-height: 500px; /* Adjust this value as needed */
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    margin-bottom: 20px;
+}
+
+/* Custom scrollbar styling for better appearance */
+.backup-card-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.backup-card-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.backup-card-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.backup-card-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+
+.backup-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.backup-card:last-child {
+    margin-bottom: 0;
+}
+
+.backup-card:hover {
+    transform: translateY(-4px);
+}
+
+.backup-name {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.backup-date {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+.backup-card-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+/* Buttons */
+.backup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1px solid;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.backup-btn i {
+    font-size: 0.8rem;
+}
+
+.download-btn {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.download-btn:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+.delete-btn {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* -------------------------------------------
+   DELETE MODAL (MINIMALIST MATCHING SAMPLE)
+------------------------------------------- */
+/* Empty State */
+.backup-empty-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* PDF Viewer Modal Styles */
+.pdf-viewer-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+}
+
+.pdf-viewer-modal.visible {
+    display: block;
+}
+
+.pdf-viewer-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.pdf-viewer-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pdf-viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.pdf-viewer-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.25rem;
+}
+
+.pdf-viewer-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.pdf-viewer-close:hover {
+    color: #495057;
+    background: #e9ecef;
+}
+
+.pdf-viewer-body {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+}
+
+.pdf-viewer-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.pdf-viewer-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Delete Confirmation Modal */
+#backupDeleteModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+}
+
+#backupDeleteModal.visible {
+    display: block;
+}
+
+.backup-delete-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.backup-delete-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-width: 400px;
+    max-width: 90%;
+}
+
+.backup-delete-box h3 {
+    margin: 0 0 15px 0;
+    color: #dc3545;
+}
+
+.backup-delete-message {
+    margin: 0 0 20px 0;
+    color: #333;
+}
+
+.backup-delete-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.backup-delete-actions button {
+    padding: 8px 16px;
+    border: 1px solid;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.backup-delete-cancel {
+    background: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.backup-delete-cancel:hover {
+    background: #5a6268;
+    border-color: #545b62;
+}
+
+.backup-delete-confirm {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.backup-delete-confirm:hover {
+    background: #c82333;
+    border-color: #bd2130;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .backup-card-container {
+        max-height: 400px;
+    }
+    
+    .pdf-viewer-container {
+        width: 95%;
+        height: 95%;
+    }
+    
+    .backup-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .backup-card-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .backup-delete-box {
+        min-width: 90%;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .backup-card-actions {
+        flex-direction: column;
+    }
+    
+    .backup-card-actions .backup-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .pdf-viewer-footer {
+        flex-direction: column;
+    }
+    
+    .pdf-viewer-footer .backup-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+/* View Button Styles */
+.view-btn {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+
+.view-btn:hover {
+  background-color: #138496 !important;
+  border-color: #117a8b !important;
+}
+
+.backup-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pdf-viewer-container {
+    width: 95%;
+    height: 95%;
+  }
+  
+  .backup-card-actions {
+    flex-direction: column;
+  }
+  
+  .backup-card-actions .backup-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

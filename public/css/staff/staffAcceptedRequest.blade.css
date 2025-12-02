@@ -1,0 +1,627 @@
+/* Ensure html and body take full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  width: 100vw;
+  background-color: #cfcdcd;
+}
+
+/* This makes the container stretch full height and use flexbox */
+.container {
+  display: flex;
+  height: 10vh;
+  flex: 1;
+  max-width: 100%;
+  gap: 25px;
+}
+    /* Sidebar */
+
+    /* add ko lng */
+    nav a {
+  color: white;
+  background-color: #e4e9ecbd;
+  padding: 10px 15px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin: 5px;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+nav a:hover {
+  background-color: #a309eb;
+}
+
+nav a.active {
+  background-color: #7b099e;
+}
+/* add ko lng */
+
+p{
+  font-size: large;
+  font-weight: 50%;
+}
+    
+
+
+
+aside.sidebar {
+    position: fixed;
+    left: -350px;
+    top: 0;
+    height: 100%;
+    width: 280px;
+
+    /* Glassmorphism background */
+    background: rgba(26, 26, 26, 0.5); /* semi-transparent */
+    backdrop-filter: blur(10px);        /* blur behind */
+    -webkit-backdrop-filter: blur(10px); /* for Safari */
+
+    color: white;
+    padding: 1rem;
+    box-sizing: border-box;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+
+    border-right: 1px solid rgba(255, 255, 255, 0.2); /* subtle glass border */
+    align-items: center;
+}
+
+
+/* Sidebar visible */
+aside.sidebar.active {
+  left: 0;
+}
+
+/* Burger button */
+.burger-menu {
+  display: flex;
+  align-items: center;   /* vertically center button + text */
+}
+.burger-btn:hover{
+  background-color: #550b92;
+        box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.712);
+        color: #fff;
+        transform: translateY(-7px);
+}
+.text-btn{
+  font-family: Arial, sans-serif; 
+  padding: 7px 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 600;
+  font-weight: lighter;
+}
+
+.burger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+   gap: 10px;
+  background-color: #cccccc;
+  padding: 4px;
+  border-radius: 18px;
+  padding: 6px 13px;
+  transition: all 0.3s ease 0s;
+}
+
+
+.burger-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.logout-btn {
+  background: #d1d5db;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.logout-btn:hover {
+  background: #9ca3af;
+}
+
+.top-bar-spacer {
+  flex: 1; /* pushes logout button to the far right */
+}
+.page-title{
+  text-align: center;
+  margin: 40px 0px 40px 0px;
+  font-family: Arial, sans-serif; 
+  letter-spacing: 2px;
+  font-size: 30px;
+  text-transform: uppercase;
+  font-weight: lighter;
+}
+.text-title{
+  background: #f9f9f9;
+  box-shadow: 18px 4px 20px rgba(0, 0, 0, 0.2);
+  width: 15em;
+  justify-self: center;
+  padding: 10px 15px;
+  border-radius: 10px;
+}
+
+    aside.sidebar .logo-container {
+      background: #a3a3a3;
+      margin: 0 24px;
+      border-radius: 24px;
+      padding: 16px 0;
+      text-align: center;
+      color: #1a1a1a;
+    }
+    aside.sidebar .logo-container img {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      display: block;
+      margin: 0 auto;
+    }
+    aside.sidebar nav {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-left: 24px;
+    }
+    .not-active {
+      color: rgb(0, 0, 0);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    .active{
+      color: rgb(248, 248, 248);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    aside.sidebar nav a.active,
+    aside.sidebar nav a:hover {
+      background-color: #4b4b4b;
+      color: white;
+    }
+    aside.sidebar .admin-container {
+      background: #a3a3a3;
+      margin: 0 24px 24px 24px;
+      border-radius: 24px;
+      padding: 16px 0;
+      text-align: center;
+      color: #1a1a1a;
+    }
+    aside.sidebar .admin-container img {
+      width: 120px;
+      height: 140px;
+      border-radius: 48px 48px 0 0;
+      display: block;
+      margin: 0 auto;
+    }
+   /* Main content fills remaining space */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  
+}
+    .top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;  /* menu left, logout right */
+  background: #f9f9f9;
+  padding: 10px 20px;
+  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+}
+
+
+    .top-bar .logout-btn {
+      padding: 1.3em 3em;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        font-weight: 500;
+        color: #000;
+        background-color: #cccccc;
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease 0s;
+        cursor: pointer;
+        outline: none;
+     }
+    button[type='button']:hover {
+        background-color: #550b92;
+        box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.712);
+        color: #fff;
+        transform: translateY(-7px);
+      }
+       
+
+    .top-bar .btn i {
+      font-size: 14px;
+    }
+
+    .btn:hover{
+         background-color: #550b92;
+        box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.712);
+        color: #fff;
+        transform: translateY(-7px);
+
+    }
+/* --- NAV LOGO --- */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* if you want space between logo & text later */
+  margin-right: 1em;
+}
+
+.nav-logo img {
+  height: 45px;       /* adjust size */
+  width: auto;        /* keep proportions */
+  object-fit: contain;
+  border-radius: 50%; /* optional, for rounded corners */
+}
+
+    .content {
+      background: #8b7f7f;
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      height:390px;
+      max-width: max-content;
+    }
+
+
+
+    /*table*/
+    .table-container {
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 12px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 94%;
+      max-width: 1200px;
+      margin: 2em auto;
+      font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  border-radius: 16px;
+    border-collapse: collapse;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+th {
+  background-color: #f5f5f5;
+}
+.view-btn, .deny-btn {
+  padding: 6px 12px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.view-btn {
+  background-color: #2563eb;
+  color: white;
+}
+
+.view-btn:hover {
+  background-color: #1e40af;
+}
+
+.deny-btn {
+  background-color: #dc2626;
+  color: white;
+}
+
+.deny-btn:hover {
+  background-color: #991b1b;
+}
+/* Archive confirmation modal */
+.archive-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  align-items: center;
+  justify-content: center;
+}
+
+.archive-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+}
+
+.archive-modal-box {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px;
+  width: 420px;
+  max-width: calc(100% - 32px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.archive-modal-box header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.archive-modal-body p { margin: 0; color: #374151; font-size: 0.95rem; }
+
+.archive-modal-footer {
+  display:flex;
+  justify-content:flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Button styles (adapt to your existing button classes) */
+.btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.cancel-archive-btn {
+  background: #f3f4f6;
+  color: #111827;
+}
+.confirm-archive-btn {
+  background: #2563eb;
+  color: #fff;
+}
+.archive-btn {
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.archive-btn:hover {
+  background-color: #4b5563;
+  transform: translateY(-2px);
+}
+
+/* === MINIMALIST MODAL DESIGN (UPDATED) === */
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
+
+/* Modal Container */
+.modal-content {
+  background: #ffffff;
+  border-radius: 18px;
+  width: 85%;
+  max-width: 850px;
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  padding: 70px 50px 40px 50px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Left Side - Information Fields */
+.modal-left {
+  flex: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-left label {
+  font-weight: 500;
+  color: #4a4a4a;
+  font-size: 13px;
+  margin-top: 6px;
+  letter-spacing: 0.3px;
+}
+
+.modal-left input {
+  width: 100%;
+  background: #f5f5f7;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #222;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.modal-left input:focus {
+  background: #ffffff;
+  border: 1px solid #a67be9;
+  box-shadow: 0 0 0 2px rgba(166, 123, 233, 0.2);
+}
+
+/* Update Info Button */
+.modal-left button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background-color: #6a1b9a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.modal-left button[type="submit"]:hover {
+  background-color: #5a0f88;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(90, 15, 136, 0.3);
+}
+
+/* === RIGHT SIDE: Scrollable Image Section === */
+.modal-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  max-height: 80vh; /* limits total height inside modal */
+  overflow-y: auto; /* enables scrolling when image is tall */
+  overflow-x: hidden;
+  padding-right: 6px; /* space for scrollbar */
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #b49dd4 #f0f0f0; /* for Firefox */
+}
+.modal-right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-right::-webkit-scrollbar-thumb {
+  background-color: #b49dd4;
+  border-radius: 6px;
+}
+
+.modal-right::-webkit-scrollbar-thumb:hover {
+  background-color: #9c7ccc;
+}
+
+/* Images inside modal */
+.modal-right img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  object-fit: contain;
+  margin-bottom: 15px; /* space between multiple images */
+}
+
+.modal-right img:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 22px rgba(106, 27, 154, 0.25);
+}
+
+
+/* === CLOSE BUTTON === */
+.close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 38px;
+  height: 38px;
+  background: #f2f2f2;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 600;
+  color: #6a1b9a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
+}
+
+.close:hover {
+  background: #6a1b9a;
+  color: #fff;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 10px rgba(106, 27, 154, 0.3);
+}
+
+.close:active {
+  transform: scale(0.95);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-content {
+    flex-direction: column;
+    gap: 24px;
+    padding: 25px;
+  }
+
+  .modal-right img {
+    max-height: 200px;
+  }
+
+  .close {
+    top: 12px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+  }
+}
+
+

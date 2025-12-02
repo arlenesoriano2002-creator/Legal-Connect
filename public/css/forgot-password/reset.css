@@ -1,0 +1,252 @@
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #e2e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.forgot-container {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 400px;
+    width: 100%;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+    background-color: #000000;
+    padding: 10px 10px 30px 10px;
+    border-radius: 10px 10px 0 0;
+}
+
+.form-logo {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-logo svg {
+    width: 100%;
+    height: 100%;
+    fill: #e0c810;
+}
+
+.form-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #e3c309;
+    letter-spacing: 1px;
+}
+
+.form-subtitle {
+    color: #e3c309;
+    opacity: 0.8;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.forgot-card {
+    padding: 40px 30px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 32px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 8px;
+    top: 20px; /* Fixed pixel position instead of percentage */
+    width: 20px;
+    height: 20px;
+    color: #000000;
+    z-index: 1;
+}
+.form-input {
+    width: 100%;
+    padding: 16px 40px 10px 35px; /* Consistent padding */
+    border: none;
+    border-bottom: 2px solid #000000;
+    background: transparent;
+    font-size: 16px;
+    color: #000000;
+    outline: none;
+    transition: border-color 0.3s ease;
+    line-height: 1.5;
+}
+
+.form-input:focus {
+    border-bottom-color: #e3b308;
+}
+
+.form-input::placeholder {
+    color: #000000;
+}
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.submit-btn, .back-btn {
+    width: 100%;
+    background: #000000;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 18px 32px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.submit-btn:hover {
+    background: rgb(243, 200, 27);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 107, 157, 0.3);
+    color: black;
+}
+
+.back-btn {
+    background: transparent;
+    border: 2px solid #000000;
+    color: #000000;
+}
+
+.back-btn:hover {
+    background: #000000;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.error-list {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.error-list ul {
+    list-style: none;
+    color: #dc2626;
+}
+
+.error-list li {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.error-list li::before {
+    content: '• ';
+    color: #dc2626;
+}
+
+.success-message {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    color: #16a34a;
+}
+
+/* Password Strength Meter Styles */
+.password-strength {
+    margin-top: 8px; /* Reduced from 10px */
+    padding: 0 5px;
+}
+
+.strength-meter {
+    height: 6px;
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.strength-text {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 20px; /* Fixed pixel position to match left icon */
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #000000;
+    opacity: 0.7;
+    padding: 4px;
+    z-index: 2;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+    color: #e3b308;
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Strength level colors */
+.strength-too-short .strength-fill { background-color: #9ca3af; width: 20%; }
+.strength-weak .strength-fill { background-color: #ef4444; width: 40%; }
+.strength-fair .strength-fill { background-color: #f59e0b; width: 60%; }
+.strength-good .strength-fill { background-color: #3b82f6; width: 80%; }
+.strength-strong .strength-fill { background-color: #10b981; width: 100%; }
+
+.strength-too-short .strength-text { color: #000000; }
+.strength-weak .strength-text { color: #ef4444; }
+.strength-fair .strength-text { color: #f59e0b; }
+.strength-good .strength-text { color: #3b82f6; }
+.strength-strong .strength-text { color: #10b981; }
+
+@media (max-width: 480px) {
+    .input-icon, .password-toggle {
+        top: 15px;
+    }
+    .form-input {
+        padding: 14px 35px 7px 30px;
+    }
+}

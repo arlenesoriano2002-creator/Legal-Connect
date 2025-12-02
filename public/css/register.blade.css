@@ -1,0 +1,758 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #e2e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.register-container {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 390px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #000000;
+    padding: 8px 8px 20px 8px;
+    border-radius: 10px 10px 0 0;
+}
+
+.form-logo {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-logo svg {
+    width: 100%;
+    height: 100%;
+    fill: #e0c810;
+}
+
+.form-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #e3c309;
+    letter-spacing: 1px;
+}
+
+.form-content {
+    width: 100%;
+    padding: 0 30px 40px 30px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-icon {
+    position: absolute;
+    left: 5px;
+    top: 18px;
+    width: 20px;
+    height: 20px;
+    color: #000000;
+    z-index: 1;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px 40px 16px 35px;
+    border: none;
+    border-bottom: 2px solid #000000;
+    background: transparent;
+    font-size: 16px;
+    color: #000000;
+    outline: none;
+    transition: border-color 0.3s ease;
+    line-height: 1.5;
+}
+
+.form-input:focus {
+    border-bottom-color: #e3b308;
+}
+
+.form-input::placeholder {
+    color: #000000;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #000000;
+    opacity: 0.7;
+    padding: 4px;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+    color: #e3b308;
+}
+
+.btn {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.register-button {
+    width: 50%;
+    background: rgb(0, 0, 0);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.register-button:hover {
+    background: rgb(243, 200, 27);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 107, 157, 0.3);
+    color: black;
+}
+
+.back-button {
+    width: 50%;
+    background: none;
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 50px;
+    border: solid black 2px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.back-button:hover {
+    background: rgb(0, 0, 0);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 107, 157, 0.3);
+    color: rgb(255, 255, 255);
+}
+.textLoginDescription{
+    display: flex;
+    flex-direction: row;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;     /* Centers vertically */
+    gap: 10px; /* Optional: adds space between items */
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: solid black 1.5px;
+}
+.error-list {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.error-list ul {
+    list-style: none;
+    color: #dc2626;
+}
+
+.error-list li {
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+
+.error-list li::before {
+    content: '• ';
+    color: #dc2626;
+}
+
+.success-message {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    color: #15803d;
+}
+
+.success-message i {
+    margin-right: 8px;
+}
+
+.field-error {
+    color: #dc2626;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+.error-text {
+    color: #dc2626;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Tablet Styles (768px and up) */
+@media (min-width: 768px) {
+    .register-container {
+        max-width: 400px;
+    }
+
+    .form-header {
+        margin-bottom: 25px;
+        padding: 10px 10px 25px 10px;
+    }
+    
+    .form-logo {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 20px;
+    }
+    
+    .form-title {
+        font-size: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .input-icon {
+        left: 10px;
+        top: 18px;
+        width: 22px;
+        height: 22px;
+    }
+    
+    .form-input {
+        padding: 18px 42px 18px 38px;
+        font-size: 17px;
+    }
+    
+    .password-toggle {
+        right: 10px;
+        top: 26px;
+        width: 26px;
+        height: 26px;
+    }
+    
+    .register-button {
+        padding: 16px 32px;
+        font-size: 17px;
+    }
+    
+    .back-button {
+        padding: 16px 32px;
+        font-size: 17px;
+    }
+}
+
+/* Desktop Styles (1024px and up) */
+@media (min-width: 1024px) {
+    .register-container {
+        max-width: 420px;
+    }
+    
+    .form-header {
+        margin-bottom: 30px;
+        padding: 12px 12px 30px 12px;
+    }
+    
+    .form-logo {
+        width: 56px;
+        height: 56px;
+        margin: 18px auto 12px;
+    }
+    
+    .form-title {
+        font-size: 32px;
+    }
+    
+    .form-group {
+        margin-bottom: 30px;
+    }
+    
+    .input-icon {
+        left: 10px;
+        width: 24px;
+        height: 24px;
+    }
+    
+    .form-input {
+        padding: 20px 45px 20px 40px;
+        font-size: 18px;
+    }
+    
+    .password-toggle {
+        right: 12px;
+        top: 28px;
+        width: 28px;
+        height: 28px;
+    }
+    
+    .register-button {
+        padding: 18px 32px;
+        font-size: 18px;
+    }
+    
+    .back-button {
+        padding: 18px 32px;
+        font-size: 18px;
+    }
+}
+
+/* Small Mobile Styles (480px and below) */
+@media (max-width: 480px) {
+    body {
+        padding: 15px;
+    }
+    
+    .register-container {
+        border-radius: 20px;
+        max-width: 100%;
+    }
+    
+    .form-header {
+        margin-bottom: 20px;
+        padding: 6px 6px 20px 6px;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .form-logo {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto 16px;
+    }
+    
+    .form-title {
+        font-size: 26px;
+    }
+    
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .input-icon {
+        left: 9px;
+        top: 22px;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .form-input {
+        padding: 14px 38px 14px 32px;
+        font-size: 15px;
+    }
+    
+    .password-toggle {
+        right: 6px;
+        top: 22px;
+        width: 22px;
+        height: 22px;
+    }
+    
+    .register-button {
+        padding: 12px 28px;
+        font-size: 15px;
+    }
+    
+    .back-button {
+        padding: 12px 28px;
+        font-size: 15px;
+    }
+    
+    .error-list {
+        padding: 10px;
+        margin-bottom: 14px;
+    }
+    
+    .error-list li {
+        font-size: 13px;
+    }
+    
+    .success-message {
+        padding: 10px;
+        margin-bottom: 14px;
+    }
+}
+
+/* Very Small Mobile Styles (360px and below) */
+@media (max-width: 360px) {
+    body {
+        padding: 10px;
+    }
+    
+    .register-container {
+        border-radius: 16px;
+    }
+    
+    .form-content {
+        padding: 0 20px 30px 20px;
+    }
+    
+    .form-header {
+        margin-bottom: 16px;
+        padding: 4px 4px 16px 4px;
+    }
+    
+    .form-logo {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 14px;
+    }
+    
+    .form-title {
+        font-size: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 14px;
+    }
+    
+    .input-icon {
+        left: 4px;
+        top: 20px;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .form-input {
+        padding: 12px 36px 12px 30px;
+        font-size: 14px;
+    }
+    
+    .password-toggle {
+        right: 4px;
+        top: 20px;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .register-button {
+        padding: 10px 24px;
+        font-size: 14px;
+    }
+    
+    .back-button {
+        padding: 10px 24px;
+        font-size: 14px;
+    }
+    
+    .btn {
+        gap: 8px;
+    }
+    
+    .error-list {
+        padding: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .error-list li {
+        font-size: 12px;
+    }
+    
+    .success-message {
+        padding: 8px;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+}
+
+/* Large Desktop Styles (1440px and up) */
+@media (min-width: 1440px) {
+    .register-container {
+        max-width: 450px;
+    }
+    
+    .form-header {
+        margin-bottom: 35px;
+        padding: 14px 14px 35px 14px;
+    }
+    
+    .form-logo {
+        width: 60px;
+        height: 60px;
+        margin: 20px auto 28px;
+    }
+    
+    .form-title {
+        font-size: 34px;
+    }
+    
+    .form-content {
+        padding: 0 35px 45px 35px;
+    }
+}
+
+/* Ultra-wide Screens (1920px and up) */
+@media (min-width: 1920px) {
+    .register-container {
+        max-width: 480px;
+    }
+    
+    .form-content {
+        padding: 0 40px 50px 40px;
+    }
+}
+
+/* Fix for very tall screens */
+@media (min-height: 900px) and (min-width: 1024px) {
+    .register-container {
+        min-height: 600px;
+    }
+    
+    .form-content {
+        padding: 0 30px 60px 30px;
+    }
+}
+
+/* Landscape Mobile Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        padding: 10px;
+        align-items: flex-start;
+    }
+    
+    .register-container {
+        margin: 20px 0;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .form-content {
+        padding: 0 30px 20px 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 12px;
+    }
+    
+    .form-input {
+        padding: 10px 40px 10px 35px;
+    }
+    
+    .btn {
+        margin-top: 5px;
+    }
+}
+
+/* Fix for JavaScript toggle functionality */
+#eye-open-1,
+#eye-closed-1,
+#eye-open-2,
+#eye-closed-2 {
+    width: 20px;
+    height: 20px;
+}
+
+.password-toggle svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure proper touch targets on mobile */
+@media (max-width: 768px) {
+    .form-input,
+    .register-button,
+    .back-button,
+    .password-toggle {
+        min-height: 44px; /* Minimum touch target size */
+    }
+    
+    .password-toggle {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* High DPI Screens Optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .form-input {
+        border-bottom-width: 1.5px;
+    }
+    
+    .back-button {
+        border-width: 1.5px;
+    }
+}
+
+/* Password Strength Meter Styles */
+.password-strength {
+    margin-top: 8px; /* Reduced from 10px */
+    padding: 0 5px;
+}
+
+.strength-meter {
+    height: 6px;
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.strength-text {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 20px; /* Fixed pixel position to match left icon */
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #000000;
+    opacity: 0.7;
+    padding: 4px;
+    z-index: 2;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+    color: #e3b308;
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Strength level colors */
+.strength-too-short .strength-fill { background-color: #9ca3af; width: 20%; }
+.strength-weak .strength-fill { background-color: #ef4444; width: 40%; }
+.strength-fair .strength-fill { background-color: #f59e0b; width: 60%; }
+.strength-good .strength-fill { background-color: #3b82f6; width: 80%; }
+.strength-strong .strength-fill { background-color: #10b981; width: 100%; }
+
+.strength-too-short .strength-text { color: #000000; }
+.strength-weak .strength-text { color: #ef4444; }
+.strength-fair .strength-text { color: #f59e0b; }
+.strength-good .strength-text { color: #3b82f6; }
+.strength-strong .strength-text { color: #10b981; }
+
+@media (max-width: 480px) {
+    .input-icon, .password-toggle {
+        top: 15px;
+    }
+    .form-input {
+        padding: 14px 35px 7px 30px;
+    }
+}
+
+/* Phone Input Styles */
+.phone-input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.country-code-select {
+    flex: 0 0 140px;
+    padding: 17px 12px;
+    border: none;
+    border-bottom: 2px solid #000000;
+    background: transparent;
+    font-size: 14px;
+    color: #000000;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'><path fill='%23000000' d='M2 0L0 2h4zm0 5L0 3h4z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+}
+
+.country-code-select:focus {
+    border-bottom-color: #e3b308;
+}
+
+.phone-number-input {
+    flex: 1;
+    padding: 11px 12px;
+}
+
+.phone-limit-info {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 5px;
+    text-align: right;
+}
+
+/* Remove default dropdown arrow for better styling */
+.country-code-select::-ms-expand {
+    display: none;
+}
+
+/* Responsive design for phone input */
+@media (max-width: 480px) {
+    .phone-input-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .country-code-select {
+        flex: none;
+        width: 100%;
+    }
+    
+    .phone-number-input {
+        width: 100%;
+    }
+}
+
+/* Focus states */
+.country-code-select:focus,
+.phone-number-input:focus {
+    border-bottom-color: #e3b308;
+}
