@@ -539,18 +539,18 @@ class CalendarManager {
     }
     
     createDayCell(day, date, isOtherMonth) {
-        const yyyy = date.getFullYear();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        const dateStr = `${yyyy}-${mm}-${dd}`;
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
 
-        return `
-            <div class="day-cell ${isOtherMonth ? 'other-month' : ''}" 
-                data-date="${dateStr}">
-                ${date.getDate()}
-            </div>
-        `;
-    }
+    return `
+        <div class="day-cell ${isOtherMonth ? 'other-month' : ''}" 
+            data-date="${dateStr}">
+            <span>${date.getDate()}</span>
+        </div>
+    `;
+}
 
     async loadMonthColors() {
     const month = this.currentDate.toISOString().substring(0, 7);
