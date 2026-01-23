@@ -30,6 +30,8 @@ use App\Http\Controllers\FetchAppointmentsController;
 use App\Http\Controllers\EmailReceiverController;
 use App\Http\Controllers\EmailSenderController;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\CaseCategoryController;
+use App\Http\Controllers\ChatController;
 //-----------------
 // DEFAULT ROUTE
 //-----------------
@@ -53,7 +55,6 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// REGISTRATION & OTP
 // REGISTRATION & OTP
 Route::get('/register', [UserRegisterController::class, 'showForm'])->name('register.form');
 Route::post('/register', [UserRegisterController::class, 'register'])->name('register');
@@ -190,7 +191,6 @@ Route::get('/appointment-slots/{id}', [AppointmentSlotController::class, 'show']
 Route::put('/appointment-slots/{id}', [AppointmentSlotController::class, 'update']);
 
 // APPOINTMENT ACTIONS
-//Route::post('/appointments/{id}/accept', [AppointmentController::class, 'accept'])->name('appointments.accept');
 Route::post('/appointments/{id}/deny-appointment', [AppointmentController::class, 'denyAppointment'])->name('appointments.denyAppointment');
 Route::post('/appointments/reaccept/{id}', [AppointmentController::class, 'reaccept'])->name('appointments.reaccept');
 Route::delete('/appointments/delete/{id}', [AppointmentController::class, 'delete'])->name('appointments.delete');
@@ -294,16 +294,13 @@ Route::get('/test-email', function () {
     }
 });
 
-
-
-
 ///fetch appointments data
 Route::get('/appointments', [FetchAppointmentsController::class, 'index'])->name('appointments.index');
 Route::get('/api/appointments', [FetchAppointmentsController::class, 'getAppointments'])->name('appointments.list');
 Route::get('/api/appointments/{id}', [FetchAppointmentsController::class, 'getAppointmentDetails'])->name('appointments.details');
 Route::get('/backup/download/{id}', [BackupArchivedController::class, 'downloadBackupFile'])->name('backup.download');
 
-//  route to admin protected routes section
+// route to admin protected routes section
 Route::delete('/admin/backup/delete-by-id/{id}', [BackupArchivedController::class, 'deleteBackupById'])->name('admin.backup.delete.byid');
 
 Route::get('/debug-backups', function() {
@@ -332,6 +329,7 @@ Route::get('/adminAccount/search', [AdminAccountController::class, 'searchStaff'
 
 // Calendar color routes
 
+Route::middleware('auth')->get('/chat/messages/download/{message}', [ChatController::class, 'downloadFile'])->name('chat.messages.download');
 
 Route::get('/debug-db-structure', function() {
     $structure = DB::select("DESCRIBE month_colors");
@@ -340,12 +338,15 @@ Route::get('/debug-db-structure', function() {
         'sample_records' => DB::table('month_colors')->limit(5)->get()
     ]);
 });
+
 // Month view routes
 Route::get('/calendar/month/colors', [CalendarController::class, 'getMonthColors']);
 Route::get('/calendar/date-data', [CalendarController::class, 'getDateData']);
 Route::post('/calendar/save-date-data', [CalendarController::class, 'saveDateData']);
+
 // Week view routes  
 Route::get('/calendar/week/load-data', [CalendarController::class, 'loadWeekData']);
+
 Route::get('/debug-calendar-response/{month}', function($month) {
     $colors = DB::table('month_colors')
         ->where('month', $month)
@@ -374,6 +375,7 @@ Route::get('/debug-calendar-response/{month}', function($month) {
 
 Route::post('/decrement-slot-count', [AppointmentController::class, 'decrementSlotCount'])->name('decrement.slot.count');
 Route::post('/fix-existing-week-colors', [CalendarController::class, 'fixExistingWeekColors']);
+
 // Add to web.php for debugging
 Route::get('/debug-week-colors/{date}', function($date) {
     $colors = DB::table('week_colors')
@@ -387,6 +389,7 @@ Route::get('/debug-week-colors/{date}', function($date) {
         'count' => $colors->count()
     ]);
 });
+
 // Debug route to check month_colors data structure
 Route::get('/debug-month-data/{month}', function($month) {
     $data = DB::table('month_colors')
@@ -408,18 +411,17 @@ Route::get('/debug-month-data/{month}', function($month) {
         'count' => $data->count()
     ]);
 });
+
 // New booking route for week_colors system
 Route::post('/appointment/book-week-slot', [AppointmentController::class, 'bookWeekSlot'])->name('appointment.book.week.slot');
 
-// CALENDAR ROUTES - Keep only these
-//Route::get('/calendar/month/colors', [AppointmentController::class, 'getMonthColors']);
+// CALENDAR ROUTES
 Route::get('/calendar/week/colors', [AppointmentController::class, 'getWeekColors']);
-//Route::post('/book-week-slot', [AppointmentController::class, 'bookWeekSlot']);
-
 
 // Terms routes
 Route::get('/Terms', [TermsController::class, 'show'])->name('Terms');
 Route::post('/terms/accept', [TermsController::class, 'accept'])->name('terms.accept');
+
 // Temporary debug route - remove after fixing
 Route::get('/debug-session', function() {
     return response()->json([
@@ -539,6 +541,7 @@ Route::get('/debug-storage-structure', function () {
     
     return $structure;
 });
+
 Route::get('/debug-routes', function() {
     $routes = collect(Route::getRoutes())->map(function ($route) {
         return [
@@ -632,6 +635,7 @@ Route::get('/fix-email-chat-db', function () {
         return "Error: " . $e->getMessage();
     }
 });
+
 // Emergency database fix route
 Route::get('/fix-email-chat-now', function () {
     try {
@@ -649,6 +653,7 @@ Route::get('/fix-email-chat-now', function () {
         return "❌ Error: " . $e->getMessage();
     }
 });
+
 Route::get('/test-email-sending', function () {
     try {
         \Mail::raw('Test email body', function ($message) {
@@ -664,6 +669,7 @@ Route::get('/test-email-sending', function () {
         return 'Email error: ' . $e->getMessage();
     }
 });
+
 // Debug route to check email system status
 Route::get('/debug-email-system', function() {
     $status = [
@@ -687,3 +693,83 @@ Route::get('/debug-email-system', function() {
 
 Route::post('/appointments/backup-pdf', [BackupArchivedController::class, 'createAppointmentsBackupPdf'])->name('appointments.backup-pdf');
 Route::get('/backup/view/{id}', [BackupArchivedController::class, 'viewBackupFile'])->name('backup.view');
+
+// create excel file
+Route::post('/appointments/backup-excel', [BackupArchivedController::class, 'createAppointmentsBackupExcel']);
+
+// Practice Areas Routes
+Route::get('/practice-areas', 'App\Http\Controllers\CaseCategoryController@index')->name('practice-areas');
+Route::post('/practice-areas/category', [CaseCategoryController::class, 'storeCategory'])->name('practice-areas.storeCategory');
+Route::put('/practice-areas/category/{oldCategory}', [CaseCategoryController::class, 'updateCategory'])->name('practice-areas.updateCategory');
+Route::delete('/practice-areas/category/{category}', [CaseCategoryController::class, 'destroyCategory'])->name('practice-areas.destroyCategory');
+Route::post('/practice-areas/case', [CaseCategoryController::class, 'storeCase'])->name('practice-areas.storeCase');
+Route::put('/practice-areas/case/{id}', [CaseCategoryController::class, 'updateCase'])->name('practice-areas.updateCase');
+Route::delete('/practice-areas/case/{id}', [CaseCategoryController::class, 'destroyCase'])->name('practice-areas.destroyCase');
+Route::get('/practice-areas/category/{category}/cases', [CaseCategoryController::class, 'getCategoryCases'])->name('practice-areas.getCategoryCases');
+
+// ADMIN PROTECTED ROUTES section
+Route::get('/messages/email', function() {
+    return redirect('/email-chat');
+})->name('messages.email');
+
+Route::get('/messages/sms', function() {
+    // Placeholder for SMS - could redirect to email-chat or show a message
+    return redirect('/email-chat')->with('info', 'SMS feature coming soon');
+})->name('messages.sms');
+
+Route::get('/messages/system-chat', function() {
+    // Placeholder for System Chat
+    return redirect('/email-chat')->with('info', 'System Chat feature coming soon');
+})->name('messages.system-chat');
+
+//-----------------
+// CHAT ROUTES
+//-----------------
+Route::middleware(['auth'])->group(function () {
+// Admin Chat Routes
+Route::get('/admin/system-chat', [ChatController::class, 'adminIndex'])->name('admin.system-chat');
+Route::get('/admin/chat/conversations', [ChatController::class, 'adminGetConversations'])->name('admin.chat.conversations');
+Route::get('/admin/chat/conversations/{conversation}/messages', [ChatController::class, 'adminGetMessages'])->name('admin.chat.messages'); // This is named 'admin.chat.messages'
+Route::post('/admin/chat/conversations/{conversation}/send', [ChatController::class, 'adminSendMessage'])->name('admin.chat.send'); // This is named 'admin.chat.send'
+Route::post('/admin/chat/conversations/start', [ChatController::class, 'adminStartConversation'])->name('admin.chat.start');
+Route::get('/admin/chat/messages/download/{message}', [ChatController::class, 'downloadFile'])->name('admin.chat.messages.download');
+Route::get('/admin/chat/conversations/{conversation}', [ChatController::class, 'adminGetConversation'])->name('admin.chat.conversation');
+Route::post('/admin/chat/conversations/{conversation}/read', [ChatController::class, 'markConversationAsRead'])->name('admin.chat.conversation.read');
+Route::post('/admin/chat/typing', [ChatController::class, 'handleTyping'])->name('admin.chat.typing');
+    
+    // Client Chat Routes
+    Route::get('/chat/conversation', [ChatController::class, 'clientGetConversation'])->name('client.chat.conversation');
+    Route::post('/chat/send', [ChatController::class, 'clientSendMessage'])->name('client.chat.send');
+    Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('chat.unread-count');
+    Route::get('/chat/check-new/{lastMessageId?}', [ChatController::class, 'checkNewMessages'])->name('chat.check-new');
+    
+    // General Chat Routes
+    Route::post('/chat/typing', [ChatController::class, 'handleTyping'])->name('chat.typing');
+    Route::post('/chat/messages/{message}/read', [ChatController::class, 'markMessageAsRead'])->name('chat.message.read');
+    Route::post('/chat/conversations/{conversation}/read', [ChatController::class, 'markConversationAsRead'])->name('chat.conversation.read');
+    
+    // File Download Route (accessible by both admin and client)
+    Route::get('/chat/messages/download/{message}', [ChatController::class, 'downloadFile'])->name('chat.messages.download');
+});
+
+//-----------------
+// ADDITIONAL DEBUG ROUTES
+//-----------------
+Route::get('/debug-chat-routes', function() {
+    return response()->json([
+        'chat_messages_download' => route('chat.messages.download', ['message' => 1]),
+        'admin_chat_messages_download' => route('admin.chat.messages.download', ['message' => 1]),
+        'all_routes' => collect(Route::getRoutes())->map(function ($route) {
+            return [
+                'method' => implode('|', $route->methods()),
+                'uri' => $route->uri(),
+                'name' => $route->getName(),
+            ];
+        })->filter(function ($route) {
+            return str_contains($route['name'] ?? '', 'chat') || str_contains($route['name'] ?? '', 'download');
+        })->values()
+    ]);
+});
+
+//polling chat message
+Route::post('/admin/chat/poll-messages', [ChatController::class, 'pollForNewMessages'])->name('admin.chat.poll');

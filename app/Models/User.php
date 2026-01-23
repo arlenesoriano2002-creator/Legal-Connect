@@ -36,4 +36,34 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class);
     }
+    
+    // Add chat relationships
+    public function conversationsAsClient()
+    {
+        return $this->hasMany(ChatConversation::class, 'client_id');
+    }
+    
+    public function conversationsAsAdmin()
+    {
+        return $this->hasMany(ChatConversation::class, 'admin_id');
+    }
+    
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class, 'sender_id');
+    }
+    
+    public function chatParticipants()
+    {
+        return $this->hasMany(ChatParticipant::class, 'user_id');
+    }
+    
+    public function hasRole($roles)
+    {
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        
+        return in_array($this->role, $roles);
+    }
 }

@@ -213,8 +213,9 @@ public function deleteBackup($filename)
     // Generate INSERT statement for a single appointment
     private function generateInsertStatement($appointment)
     {
+        // Remove 'id' from columns list
         $columns = [
-            'id', 'fullname', 'address', 'phone', 'email', 'consulting',
+            'fullname', 'address', 'phone', 'email', 'consulting',
             'selected_date', 'selected_time', 'term_status', 'appointment_approval',
             'id_front', 'id_back', 'created_at', 'updated_at'
         ];
@@ -347,8 +348,26 @@ public function createAppointmentsBackupPdf(Request $request)
 // Generate PDF content
 private function generatePdfContent($appointments, $filter)
 {
+    // Transform appointments to exclude ID
+    $appointmentsWithoutId = $appointments->map(function($appointment) {
+        return [
+            'fullname' => $appointment->fullname,
+            'email' => $appointment->email,
+            'phone' => $appointment->phone,
+            'address' => $appointment->address,
+            'category' => $appointment->category,
+            'case_name' => $appointment->case_name,
+            'selected_date' => $appointment->selected_date,
+            'selected_time' => $appointment->selected_time,
+            'appointment_approval' => $appointment->appointment_approval,
+            'term_status' => $appointment->term_status,
+            'created_at' => $appointment->created_at,
+            'updated_at' => $appointment->updated_at,
+        ];
+    });
+
     $data = [
-        'appointments' => $appointments,
+        'appointments' => $appointmentsWithoutId,
         'filter' => $filter,
         'generated_at' => now()->format('Y-m-d H:i:s'),
         'total_records' => $appointments->count()
@@ -357,6 +376,7 @@ private function generatePdfContent($appointments, $filter)
     // Generate PDF from view with table format
     return PDF::loadView('pdf.appointments_table', $data)->setPaper('a4', 'landscape');
 }
+
 
 // Generate PDF filename
 private function generatePdfFilename($filter)
@@ -380,14 +400,32 @@ public function viewBackupFile($backupId)
             ], 404);
         }
         
-        // Return the PDF file with inline content disposition
-        return response()->file(
-            Storage::disk('local')->path($actualFilePath),
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $actualFileName . '"'
-            ]
-        );
+        // Get the file extension
+        $extension = pathinfo($actualFileName, PATHINFO_EXTENSION);
+        
+        // Return the file based on its type
+        if ($extension === 'pdf') {
+            // Return PDF for inline viewing
+            return response()->file(
+                Storage::disk('local')->path($actualFilePath),
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $actualFileName . '"'
+                ]
+            );
+        } elseif ($extension === 'csv') {
+            // For CSV files, return as text/plain so they can be viewed in the iframe
+            return response()->file(
+                Storage::disk('local')->path($actualFilePath),
+                [
+                    'Content-Type' => 'text/plain; charset=utf-8',
+                    'Content-Disposition' => 'inline; filename="' . $actualFileName . '"'
+                ]
+            );
+        } else {
+            // For other file types (like SQL), download them
+            return Storage::disk('local')->download($actualFilePath, $actualFileName);
+        }
         
     } catch (\Exception $e) {
         return response()->json([
@@ -395,5 +433,128 @@ public function viewBackupFile($backupId)
             'message' => 'Failed to view backup: ' . $e->getMessage()
         ], 500);
     }
+}
+// create excel format file
+public function createAppointmentsBackupExcel(Request $request)
+{
+    try {
+        $filter = $request->input('filter', 'all');
+        
+        // Query appointments based on filter
+        $query = Appointment::query();
+        
+        if ($filter !== 'all') {
+            $query->where('appointment_approval', $filter);
+        }
+        
+        $appointments = $query->get();
+        
+        if ($appointments->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No appointments found for the selected filter.'
+            ], 404);
+        }
+
+        // Generate Excel content
+        $excelContent = $this->generateExcelContent($appointments, $filter);
+        
+        // Generate filename
+        $filename = $this->generateExcelFilename($filter);
+        $filePath = "backups/{$filename}";
+        
+        // Ensure backups directory exists
+        Storage::disk('local')->makeDirectory('backups');
+        
+        // Save Excel file to storage
+        Storage::disk('local')->put($filePath, $excelContent);
+        
+        // Encrypt the file_name and file_path before storing in database
+        $encryptedFileName = Crypt::encryptString($filename);
+        $encryptedFilePath = Crypt::encryptString($filePath);
+        
+        // Check if encrypted values are too long (for debugging)
+        if (strlen($encryptedFileName) > 65535 || strlen($encryptedFilePath) > 65535) {
+            throw new \Exception('Encrypted data too long for database column');
+        }
+        
+        // Insert record into backups table with encrypted file_name and file_path
+        Backup::create([
+            'file_name' => $encryptedFileName,
+            'file_path' => $encryptedFilePath,
+            'created_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Excel backup created successfully.',
+            'filename' => $filename,
+            'file_path' => $filePath
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Excel Backup creation failed: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create Excel backup: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+// Generate Excel content (CSV format)
+private function generateExcelContent($appointments, $filter)
+{
+    // Create CSV headers WITHOUT ID
+    $csv = "LegalConnect - Appointments Backup\r\n";
+    $csv .= "Filter: {$filter}\r\n";
+    $csv .= "Generated: " . now()->format('Y-m-d H:i:s') . "\r\n";
+    $csv .= "Total Records: " . $appointments->count() . "\r\n\r\n";
+    
+    // Column headers WITHOUT ID
+    $headers = [
+        'Full Name',
+        'Email',
+        'Phone',
+        'Address',
+        'Category',
+        'Case Name',
+        'Selected Date',
+        'Selected Time',
+        'Status',
+        'Terms Accepted',
+        'Created At',
+        'Updated At'
+    ];
+    
+    $csv .= implode(',', $headers) . "\r\n";
+    
+    // Data rows WITHOUT ID
+    foreach ($appointments as $appointment) {
+        $row = [
+            '"' . str_replace('"', '""', $appointment->fullname ?? '') . '"',
+            '"' . str_replace('"', '""', $appointment->email ?? '') . '"',
+            '"' . str_replace('"', '""', $appointment->phone ?? '') . '"',
+            '"' . str_replace('"', '""', $appointment->address ?? '') . '"',
+            '"' . str_replace('"', '""', $appointment->category ?? '') . '"',
+            '"' . str_replace('"', '""', $appointment->case_name ?? '') . '"',
+            $appointment->selected_date ?? '',
+            $appointment->selected_time ?? '',
+            '"' . str_replace('"', '""', $appointment->appointment_approval ?? '') . '"',
+            '"' . str_replace('"', '""', $appointment->term_status ?? '') . '"',
+            $appointment->created_at ?? '',
+            $appointment->updated_at ?? ''
+        ];
+        
+        $csv .= implode(',', $row) . "\r\n";
+    }
+    
+    return $csv;
+}
+
+// Generate Excel filename
+private function generateExcelFilename($filter)
+{
+    $timestamp = now()->format('Y_m_d_His');
+    return "{$filter}_appointments_{$timestamp}.csv";
 }
 }

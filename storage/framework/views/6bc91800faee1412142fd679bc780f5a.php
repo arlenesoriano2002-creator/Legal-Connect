@@ -87,6 +87,49 @@
         .compose-form.minimized + .minimized-indicator {
             display: block;
         }
+
+        /* Dropdown Section Styles */
+        .section-dropdown {
+            cursor: pointer;
+            padding: 10px 15px;
+            background: black;
+            font-weight: bold;
+            border-bottom: 1px solid #dee2e6;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .section-dropdown:hover {
+            background: #333;
+        }
+
+        .section-dropdown i {
+            transition: transform 0.3s ease;
+        }
+
+        .section-dropdown.collapsed i {
+            transform: rotate(0deg);
+        }
+
+        .section-dropdown.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+        }
+
+        .section-content.expanded {
+            max-height: 1000px; /* Large enough to show all content */
+        }
     </style>
 </head>
 <body>
@@ -111,9 +154,31 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
-               <a href="<?php echo e(url('/email-chat')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('email-chat') ? 'active' : ''); ?>">
+               <a href="#messagesSubmenu" 
+                class="list-group-item list-group-item-action <?php echo e(request()->is('email-chat') || request()->is('messages/*') ? 'active' : ''); ?>"
+                data-bs-toggle="collapse" 
+                aria-expanded="<?php echo e(request()->is('email-chat') || request()->is('messages/*') ? 'true' : 'false'); ?>">
                     <i class="fas fa-envelope"></i>
-                    <span>Email Chat</span>
+                    <span>Messages</span>
+                    <i class="fas fa-chevron-down"></i>
+                </a>
+                <div class="submenu collapse <?php echo e(request()->is('email-chat') || request()->is('messages/*') ? 'show' : ''); ?> list-group" id="messagesSubmenu">
+                    <a href="<?php echo e(route('messages.email')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('email-chat') ? 'active' : ''); ?>">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </a>
+                    <a href="<?php echo e(route('messages.sms')); ?>" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sms"></i>
+                        <span>SMS</span>
+                    </a>
+                    <a href="<?php echo e(route('admin.system-chat')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('admin/system-chat*') ? 'active' : ''); ?>">
+                        <i class="fas fa-comments"></i>
+                        <span>System Chatting</span>
+                    </a>
+                </div>
+                <a href="<?php echo e(url('/practice-areas')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('practice-areas') ? 'active' : ''); ?>">
+                    <i class="fa-solid fa-suitcase"></i>
+                    <span>Practice Areas</span>
                 </a>
 
                 <a href="#requestsSubmenu" class="list-group-item list-group-item-action <?php echo e(request()->is('clientstbl') || request()->is('adminAcceptedRequest') || request()->is('adminDeniedRequest') ? 'active' : ''); ?>" data-bs-toggle="collapse" aria-expanded="<?php echo e(request()->is('clientstbl') || request()->is('adminAcceptedRequest') || request()->is('adminDeniedRequest') ? 'true' : 'false'); ?>">
@@ -163,7 +228,7 @@
                 </button>
             </nav>
 
-            <div class="email-chat-container">
+             <div class="email-chat-container">
                 <!-- Sidebar -->
                 <div class="email-sidebar">
                     <div style="padding: 15px; border-bottom: 1px solid #dee2e6;">
@@ -176,35 +241,45 @@
                         </button>
                     </div>
 
-                    <!-- Registered Users Section -->
-                    <div class="section-header">Registered Users</div>
-                    <div id="users-list">
-                        <?php if($users->count() > 0): ?>
-                            <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <div class="contact-item" onclick="selectUser('<?php echo e($user->email); ?>', '<?php echo e($user->name); ?>')">
-                                <div class="contact-name"><?php echo e($user->name); ?></div>
-                                <div class="contact-email"><?php echo e($user->email); ?></div>
-                            </div>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        <?php else: ?>
-                            <div class="no-contacts">No users found</div>
-                        <?php endif; ?>
+                    <!-- Registered Users Section Dropdown - CHANGED TO COLLAPSED -->
+                    <div class="section-dropdown collapsed" onclick="toggleSection('users-section')">
+                        <span>Registered Users</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div id="users-section-content" class="section-content collapsed">
+                        <div id="users-list">
+                            <?php if($users->count() > 0): ?>
+                                <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="contact-item" onclick="selectUser('<?php echo e($user->email); ?>', '<?php echo e($user->name); ?>')">
+                                    <div class="contact-name"><?php echo e($user->name); ?></div>
+                                    <div class="contact-email"><?php echo e($user->email); ?></div>
+                                </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            <?php else: ?>
+                                <div class="no-contacts">No users found</div>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
-                    <!-- Email Conversations Section -->
+                    <!-- Email Conversations Section Dropdown - CHANGED TO COLLAPSED -->
                     <?php if($emailConversations->count() > 0): ?>
-                    <div class="section-header">Email Conversations</div>
-                    <div id="email-conversations-list">
-                        <?php $__currentLoopData = $emailConversations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $emailAddress => $conversation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <div class="contact-item" onclick="selectEmail('<?php echo e($emailAddress); ?>', '<?php echo e($conversation->first()->sender_name ?? $emailAddress); ?>')">
-                            <div class="contact-name"><?php echo e($conversation->first()->sender_name ?? $emailAddress); ?></div>
-                            <div class="contact-email"><?php echo e($emailAddress); ?></div>
-                            <div style="font-size: 0.8em; margin-top: 4px; opacity: 0.7;">
-                                <?php echo e(Str::limit($conversation->first()->subject, 30)); ?>
+                    <div class="section-dropdown collapsed" onclick="toggleSection('conversations-section')">
+                        <span>Email Conversations</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div id="conversations-section-content" class="section-content collapsed">
+                        <div id="email-conversations-list">
+                            <?php $__currentLoopData = $emailConversations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $emailAddress => $conversation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="contact-item" onclick="selectEmail('<?php echo e($emailAddress); ?>', '<?php echo e($conversation->first()->sender_name ?? $emailAddress); ?>')">
+                                <div class="contact-name"><?php echo e($conversation->first()->sender_name ?? $emailAddress); ?></div>
+                                <div class="contact-email"><?php echo e($emailAddress); ?></div>
+                                <div style="font-size: 0.8em; margin-top: 4px; opacity: 0.7;">
+                                    <?php echo e(Str::limit($conversation->first()->subject, 30)); ?>
 
+                                </div>
                             </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -322,6 +397,9 @@
         // Initialize compose form functionality
         initializeComposeForm();
         
+        // Initialize section dropdowns
+        initializeSectionDropdowns();
+        
         // Load Gmail messages on page load
         setTimeout(() => {
             fetchNewEmails();
@@ -374,6 +452,16 @@
         });
     }
 
+    function initializeSectionDropdowns() {
+        // Set initial state from localStorage or default to COLLAPSED
+        const usersSectionExpanded = localStorage.getItem('users-section-expanded') === 'true';
+        const conversationsSectionExpanded = localStorage.getItem('conversations-section-expanded') === 'true';
+        
+        // Apply initial state
+        setSectionState('users-section', usersSectionExpanded);
+        setSectionState('conversations-section', conversationsSectionExpanded);
+    }
+
     function initializeComposeForm() {
         // Minimize compose form
         document.getElementById('minimize-compose').addEventListener('click', function() {
@@ -394,6 +482,51 @@
         document.getElementById('minimized-indicator').addEventListener('click', function() {
             expandComposeForm();
         });
+    }
+
+    function toggleSection(sectionId) {
+        const dropdown = document.querySelector(`.section-dropdown[onclick*="${sectionId}"]`);
+        const content = document.getElementById(`${sectionId}-content`);
+        
+        if (!dropdown || !content) return;
+        
+        const isCurrentlyExpanded = dropdown.classList.contains('expanded');
+        
+        if (isCurrentlyExpanded) {
+            // Collapse
+            dropdown.classList.remove('expanded');
+            dropdown.classList.add('collapsed');
+            content.classList.remove('expanded');
+            content.classList.add('collapsed');
+        } else {
+            // Expand
+            dropdown.classList.remove('collapsed');
+            dropdown.classList.add('expanded');
+            content.classList.remove('collapsed');
+            content.classList.add('expanded');
+        }
+        
+        // Save state to localStorage
+        localStorage.setItem(`${sectionId}-expanded`, !isCurrentlyExpanded);
+    }
+
+    function setSectionState(sectionId, expanded) {
+        const dropdown = document.querySelector(`.section-dropdown[onclick*="${sectionId}"]`);
+        const content = document.getElementById(`${sectionId}-content`);
+        
+        if (!dropdown || !content) return;
+        
+        if (expanded) {
+            dropdown.classList.remove('collapsed');
+            dropdown.classList.add('expanded');
+            content.classList.remove('collapsed');
+            content.classList.add('expanded');
+        } else {
+            dropdown.classList.remove('expanded');
+            dropdown.classList.add('collapsed');
+            content.classList.remove('expanded');
+            content.classList.add('collapsed');
+        }
     }
 
     function minimizeComposeForm() {

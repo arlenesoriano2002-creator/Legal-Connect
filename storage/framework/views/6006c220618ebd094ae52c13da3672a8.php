@@ -6,18 +6,41 @@
             <div class="backup-card-info">
                 <!-- Handle both cases: model with accessor or object with property -->
                 <?php if(isset($backup->decrypted_file_name)): ?>
-                    <h5 class="backup-name"><?php echo e($backup->decrypted_file_name); ?></h5>
-                <?php else: ?>
-                    <!-- Fallback: try to decrypt manually or show encrypted -->
-                    <h6 class="backup-name">
+                    <div class="backup-name-container">
                         <?php
-                            try {
-                                echo \Illuminate\Support\Facades\Crypt::decryptString($backup->file_name);
-                            } catch (Exception $e) {
-                                echo 'Encrypted Backup';
+                            $extension = pathinfo($backup->decrypted_file_name, PATHINFO_EXTENSION);
+                            $icon = '';
+                            switch(strtolower($extension)) {
+                                case 'pdf':
+                                    $icon = 'fa-file-pdf';
+                                    break;
+                                case 'csv':
+                                    $icon = 'fa-file-excel';
+                                    break;
+                                case 'sql':
+                                    $icon = 'fa-database';
+                                    break;
+                                default:
+                                    $icon = 'fa-file';
                             }
                         ?>
-                    </h5>
+                        <i class="fas <?php echo e($icon); ?> me-2"></i>
+                        <h5 class="backup-name"><?php echo e($backup->decrypted_file_name); ?></h5>
+                    </div>
+                <?php else: ?>
+                    <!-- Fallback: try to decrypt manually or show encrypted -->
+                    <div class="backup-name-container">
+                        <i class="fas fa-file me-2"></i>
+                        <h6 class="backup-name">
+                            <?php
+                                try {
+                                    echo \Illuminate\Support\Facades\Crypt::decryptString($backup->file_name);
+                                } catch (Exception $e) {
+                                    echo 'Encrypted Backup';
+                                }
+                            ?>
+                        </h6>
+                    </div>
                 <?php endif; ?>
                 <p class="backup-date"><?php echo e(\Carbon\Carbon::parse($backup->created_at)->format('M d, Y h:i A')); ?></p>
             </div>

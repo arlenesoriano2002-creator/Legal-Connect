@@ -88,32 +88,41 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ✅ PDF Viewer Functions
-function openPdfViewer(backupId, fileName) {
-    // CHANGE: Use the view route instead of download route
-    const pdfUrl = `/backup/view/${backupId}`;
+  function openPdfViewer(backupId, fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    // Use the view route for inline display
+    const viewUrl = `/backup/view/${backupId}`;
     
     // Set iframe source and title
-    pdfViewerFrame.src = pdfUrl;
+    pdfViewerFrame.src = viewUrl;
     pdfViewerTitle.textContent = `Preview: ${fileName}`;
     
     // Set download button to use the download route
     pdfDownloadBtn.onclick = () => {
-        window.open(`/backup/download/${backupId}`, '_blank');
+      window.open(`/backup/download/${backupId}`, '_blank');
     };
+    
+    // Set appropriate iframe title based on file type
+    if (extension === 'csv') {
+      pdfViewerFrame.title = `CSV File: ${fileName}`;
+    } else if (extension === 'pdf') {
+      pdfViewerFrame.title = `PDF File: ${fileName}`;
+    } else {
+      pdfViewerFrame.title = `File: ${fileName}`;
+    }
     
     // Show modal
     pdfViewerModal.classList.add('visible');
-}
-
-  function closePdfViewerModal() {
-    pdfViewerModal.classList.remove('visible');
-    // Clear iframe source when closing to stop PDF rendering
-    setTimeout(() => {
-      pdfViewerFrame.src = '';
-    }, 300);
   }
 
-  // View button event listener
+  // ✅ Function to determine if file can be viewed inline
+  function canViewInline(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    return ['pdf', 'csv', 'txt'].includes(extension);
+  }
+
+  // ✅ Enhanced View button event listener
   document.body.addEventListener('click', (e) => {
     const btn = e.target.closest('.view-btn');
     if (!btn) return;
@@ -121,8 +130,23 @@ function openPdfViewer(backupId, fileName) {
     const backupId = btn.getAttribute('data-backup-id');
     const fileName = btn.closest('.backup-card').querySelector('.backup-name').textContent;
     
-    openPdfViewer(backupId, fileName);
+    // Check if file can be viewed inline
+    if (canViewInline(fileName)) {
+      openPdfViewer(backupId, fileName);
+    } else {
+      // For files that can't be viewed inline (like SQL), show a message
+      alert('This file type cannot be previewed. Please download it to view the contents.');
+    }
   });
+
+  // ✅ Function to close PDF viewer modal
+  function closePdfViewerModal() {
+    pdfViewerModal.classList.remove('visible');
+    // Clear iframe source when closing to stop PDF rendering
+    setTimeout(() => {
+      pdfViewerFrame.src = '';
+    }, 300);
+  }
 
   // Close PDF viewer events
   pdfViewerClose.addEventListener('click', closePdfViewerModal);
@@ -138,19 +162,19 @@ function openPdfViewer(backupId, fileName) {
 
   // ✅ Function to reload the updated backup cards
   window.refreshBackupCards = function () {
-      fetch('/admin/backups/refresh')
-          .then(res => res.json())
-          .then(data => {
-              document.getElementById('backupCardsContainer').outerHTML = data.html;
-              // Re-attach filter event listener after refresh
-              const newFilter = document.getElementById('backupFilter');
-              if (newFilter) {
-                newFilter.addEventListener('change', function() {
-                  const filterValue = this.value;
-                  filterBackupCards(filterValue);
-                });
-              }
-          })
-          .catch(err => console.log(err));
+    fetch('/admin/backups/refresh')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('backupCardsContainer').outerHTML = data.html;
+        // Re-attach filter event listener after refresh
+        const newFilter = document.getElementById('backupFilter');
+        if (newFilter) {
+          newFilter.addEventListener('change', function() {
+            const filterValue = this.value;
+            filterBackupCards(filterValue);
+          });
+        }
+      })
+      .catch(err => console.log(err));
   };
 });

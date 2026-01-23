@@ -52,10 +52,20 @@
                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                           Logout
                         </a>
+                        <?php if(auth()->guard()->check()): ?>
+                        <!-- Add this inside the profile-dropdown div -->
+                        <div id="chat-icon" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+                            <button class="btn btn-primary rounded-circle" style="width: 60px; height: 60px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);" onclick="openChatModal()">
+                                <i class="fas fa-comments fa-lg"></i>
+                                <span id="unread-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">0</span>
+                            </button>
+                        </div>
+                    <?php endif; ?>
                         <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" style="display: none;">
                             <?php echo csrf_field(); ?>
                         </form>
                     </div>
+                    
                 </div>
             <?php else: ?>
                 <a href="<?php echo e(url('/login')); ?>" class="admin-login">Login/Register</a>
@@ -120,7 +130,48 @@
             </div>
         </section>
     </main>
-
+        <!-- Chat Modal -->
+        <div id="chatModal" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-comments me-2"></i>Chat Support
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="chat-container" style="height: 500px;">
+                            <div class="messages-container" id="clientMessagesContainer" style="height: 400px; overflow-y: auto; padding: 20px; background: #f8f9fa;">
+                                <!-- Messages will be loaded here -->
+                                <div class="text-center text-muted mt-5">
+                                    <i class="fas fa-comments fa-3x mb-3"></i>
+                                    <p>Start a conversation with our support team</p>
+                                </div>
+                            </div>
+                            <div class="message-input p-3 border-top">
+                                <form id="clientChatForm">
+                                    <?php echo csrf_field(); ?>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('clientFileInput').click()">
+                                            <i class="fas fa-paperclip"></i>
+                                        </button>
+                                        <input type="file" id="clientFileInput" style="display: none;" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.txt,.zip,.rar">
+                                        
+                                        <input type="text" id="clientMessageInput" class="form-control" placeholder="Type your message..." autocomplete="off">
+                                        
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                    <div id="clientFilePreview" class="mt-2" style="display: none;"></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</div>
     <footer>
         <div class="container">
             <div class="footer-grid">
@@ -444,6 +495,276 @@
             closeAccountModal();
         }
     });
+
+    let clientPusher = null;
+let clientChannel = null;
+let clientConversationId = null;
+let clientLastMessageId = 0;
+
+// Show chat icon when logged in
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if(auth()->guard()->check()): ?>
+        document.getElementById('chat-icon').style.display = 'block';
+        checkUnreadMessages();
+        
+        // Check for new messages every 30 seconds
+        setInterval(checkUnreadMessages, 30000);
+    <?php endif; ?>
+});
+
+function openChatModal() {
+    const modal = new bootstrap.Modal(document.getElementById('chatModal'));
+    modal.show();
+    loadClientMessages();
+    initializeClientPusher();
+}
+
+function initializeClientPusher() {
+    if (!clientPusher) {
+        clientPusher = new Pusher('<?php echo e(config('broadcasting.connections.pusher.key')); ?>', {
+            cluster: '<?php echo e(config('broadcasting.connections.pusher.options.cluster')); ?>',
+            forceTLS: true
+        });
+    }
+    
+    // Load conversation first to get conversation ID
+    fetch('<?php echo e(route("client.chat.conversation")); ?>')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.conversation) {
+                clientConversationId = data.conversation.id;
+                joinClientConversationChannel();
+            }
+        });
+}
+
+function joinClientConversationChannel() {
+    if (clientChannel) {
+        clientPusher.unsubscribe('private-chat.' + clientConversationId);
+    }
+    
+    clientChannel = clientPusher.subscribe('private-chat.' + clientConversationId);
+    clientChannel.bind('App\\Events\\ChatMessageSent', function(data) {
+        handleClientNewMessage(data.message);
+    });
+}
+
+function handleClientNewMessage(message) {
+    if (message.conversation_id == clientConversationId) {
+        appendClientMessage(message);
+        scrollClientToBottom();
+        markClientMessageAsRead(message.id);
+    }
+    
+    // Update unread badge
+    checkUnreadMessages();
+}
+
+function loadClientMessages() {
+    fetch('<?php echo e(route("client.chat.conversation")); ?>')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayClientMessages(data.messages || []);
+                scrollClientToBottom();
+            }
+        })
+        .catch(error => console.error('Error loading messages:', error));
+}
+
+function displayClientMessages(messages) {
+    const container = document.getElementById('clientMessagesContainer');
+    container.innerHTML = '';
+    
+    if (messages.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted mt-5">
+                <i class="fas fa-comments fa-3x mb-3"></i>
+                <p>Start a conversation with our support team</p>
+            </div>
+        `;
+        return;
+    }
+    
+    messages.forEach(message => {
+        appendClientMessage(message);
+    });
+    
+    if (messages.length > 0) {
+        clientLastMessageId = messages[messages.length - 1].id;
+    }
+}
+
+function appendClientMessage(message) {
+    const container = document.getElementById('clientMessagesContainer');
+    const isSent = message.sender_id === <?php echo e(Auth::id()); ?>;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `d-flex mb-3 ${isSent ? 'justify-content-end' : 'justify-content-start'}`;
+    
+    if (message.message_type === 'file') {
+        // CORRECTED: Use chat.messages.download instead of chat.download
+        const downloadUrl = `<?php echo e(route('chat.messages.download', '')); ?>/${message.id}`;
+        messageDiv.innerHTML = `
+            <div class="${isSent ? 'bg-primary text-white' : 'bg-white'} rounded p-3" style="max-width: 70%;">
+                ${isSent ? '' : `<div class="small text-muted mb-1">${message.sender?.name || 'Admin'}</div>`}
+                <div class="mb-2">${message.message}</div>
+                <div class="d-flex align-items-center bg-${isSent ? 'light' : 'light'} rounded p-2">
+                    <i class="fas fa-file ${isSent ? 'text-primary' : 'text-secondary'} me-2"></i>
+                    <div class="flex-grow-1">
+                        <div class="small fw-bold">${message.file_name}</div>
+                        <div class="small text-muted">${formatFileSize(message.file_size)}</div>
+                    </div>
+                    <a href="${downloadUrl}" class="text-decoration-none">
+                        <i class="fas fa-download ${isSent ? 'text-primary' : 'text-secondary'}"></i>
+                    </a>
+                </div>
+                <div class="small text-${isSent ? 'white-50' : 'muted'} mt-2">
+                    ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="${isSent ? 'bg-primary text-white' : 'bg-white'} rounded p-3" style="max-width: 70%;">
+                ${isSent ? '' : `<div class="small text-muted mb-1">${message.sender?.name || 'Admin'}</div>`}
+                <div class="mb-1">${message.message}</div>
+                <div class="small text-${isSent ? 'white-50' : 'muted'}">
+                    ${new Date(message.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </div>
+            </div>
+        `;
+    }
+    
+    container.appendChild(messageDiv);
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function scrollClientToBottom() {
+    const container = document.getElementById('clientMessagesContainer');
+    container.scrollTop = container.scrollHeight;
+}
+
+document.getElementById('clientChatForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const messageInput = document.getElementById('clientMessageInput');
+    const message = messageInput.value.trim();
+    const fileInput = document.getElementById('clientFileInput');
+    const formData = new FormData();
+    
+    formData.append('message', message);
+    
+    if (fileInput.files.length > 0) {
+        formData.append('file', fileInput.files[0]);
+        document.getElementById('clientFilePreview').style.display = 'none';
+        fileInput.value = '';
+    }
+    
+    if (!message && fileInput.files.length === 0) {
+        return;
+    }
+    
+    fetch('<?php echo e(route("client.chat.send")); ?>', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageInput.value = '';
+            messageInput.focus();
+            
+            // Append the sent message
+            appendClientMessage(data.message);
+            scrollClientToBottom();
+        }
+    })
+    .catch(error => console.error('Error sending message:', error));
+});
+
+document.getElementById('clientFileInput').addEventListener('change', function() {
+    if (this.files.length > 0) {
+        const file = this.files[0];
+        const preview = document.getElementById('clientFilePreview');
+        preview.innerHTML = `
+            <div class="d-flex align-items-center bg-light rounded p-2">
+                <i class="fas fa-file text-primary me-2"></i>
+                <div class="flex-grow-1">
+                    <div class="small fw-bold">${file.name}</div>
+                    <div class="small text-muted">${formatFileSize(file.size)}</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearClientFile()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        preview.style.display = 'block';
+    }
+});
+
+function clearClientFile() {
+    document.getElementById('clientFileInput').value = '';
+    document.getElementById('clientFilePreview').style.display = 'none';
+    document.getElementById('clientFilePreview').innerHTML = '';
+}
+
+function checkUnreadMessages() {
+    fetch('<?php echo e(route("chat.unread-count")); ?>')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById('unread-badge');
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'block';
+                
+                // Flash notification for new messages
+                if (data.count > parseInt(badge.textContent || 0)) {
+                    flashChatIcon();
+                }
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+}
+
+function flashChatIcon() {
+    const icon = document.getElementById('chat-icon').querySelector('button');
+    icon.classList.add('animate__animated', 'animate__pulse', 'animate__infinite');
+    setTimeout(() => {
+        icon.classList.remove('animate__animated', 'animate__pulse', 'animate__infinite');
+    }, 3000);
+}
+
+function markClientMessageAsRead(messageId) {
+    fetch(`/chat/messages/${messageId}/read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+            'Content-Type': 'application/json'
+        }
+    });
+}
+
+// Load messages when modal is shown
+document.getElementById('chatModal').addEventListener('shown.bs.modal', function() {
+    loadClientMessages();
+});
+
+// Clear unread badge when opening chat
+document.getElementById('chatModal').addEventListener('show.bs.modal', function() {
+    document.getElementById('unread-badge').style.display = 'none';
+});
     </script>
 </body>
 </html><?php /**PATH D:\xampp\htdocs\LEGAL CONNECT\resources\views/welcome.blade.php ENDPATH**/ ?>

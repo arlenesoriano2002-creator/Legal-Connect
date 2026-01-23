@@ -46,9 +46,31 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
-                <a href="{{ url('/email-chat') }}" class="list-group-item list-group-item-action {{ request()->is('email-chat') ? 'active' : '' }}">
+                <a href="#messagesSubmenu" 
+                class="list-group-item list-group-item-action {{ request()->is('email-chat') || request()->is('messages/*') ? 'active' : '' }}"
+                data-bs-toggle="collapse" 
+                aria-expanded="{{ request()->is('email-chat') || request()->is('messages/*') ? 'true' : 'false' }}">
                     <i class="fas fa-envelope"></i>
-                    <span>Email Chat</span>
+                    <span>Messages</span>
+                    <i class="fas fa-chevron-down"></i>
+                </a>
+                <div class="submenu collapse {{ request()->is('email-chat') || request()->is('messages/*') ? 'show' : '' }} list-group" id="messagesSubmenu">
+                    <a href="{{ route('messages.email') }}" class="list-group-item list-group-item-action {{ request()->is('email-chat') ? 'active' : '' }}">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </a>
+                    <a href="{{ route('messages.sms') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sms"></i>
+                        <span>SMS</span>
+                    </a>
+                    <a href="{{ route('messages.system-chat') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-comments"></i>
+                        <span>System Chatting</span>
+                    </a>
+                </div>
+                <a href="{{ url('/practice-areas') }}" class="list-group-item list-group-item-action {{ request()->is('practice-areas') ? 'active' : '' }}">
+                    <i class="fa-solid fa-suitcase"></i>
+                    <span>Practice Areas</span>
                 </a>
                 <!--<a href="{{ url('/messages') }}" class="list-group-item list-group-item-action {{ request()->is('messages') ? 'active' : '' }}">
                     <i class="fas fa-comments"></i>
@@ -126,14 +148,19 @@
                                 <input type="text" id="searchInput" placeholder="Search appointments..." class="form-control search-input">
                             </div>
                         </div>
-                        <div class="col-md-3 mb-3 text-md-end">
-                            <!-- Save Backup Button -->
-                            <button id="saveBackupBtn" class="btn btn-success me-2">
-                                <i class="fas fa-save me-2"></i>Save Backup
-                            </button>
-                            <button id="refreshBtn" class="refresh-btn">
-                                <i class="fas fa-refresh me-2"></i>Refresh
-                            </button>
+                       <div class="col-md-3 mb-3 text-md-end">
+                            <!-- Backup Buttons -->
+                            <div class="btn-group" role="group">
+                                <button id="saveExcelBtn" class="btn btn-success me-2">
+                                    <i class="fas fa-file-excel me-2"></i>Save as Excel
+                                </button>
+                                <button id="saveBackupBtn" class="btn btn-success me-2">
+                                    <i class="fas fa-file-pdf me-2"></i>Save as PDF
+                                </button>
+                                <button id="refreshBtn" class="btn btn-secondary">
+                                    <i class="fas fa-refresh me-2"></i>Refresh
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -145,7 +172,7 @@
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <!--<th>ID</th>-->
                                         <th>Full Name</th>
                                         <th>Email</th>
                                         <th>Category</th>

@@ -383,3 +383,45 @@
     justify-content: center;
   }
 }
+.backup-name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.backup-name-container .fa-file-pdf {
+    color: #ff0000;
+}
+
+.backup-name-container .fa-file-excel {
+    color: #217346;
+}
+
+.backup-name-container .fa-database {
+    color: #007acc;
+}
+
+.backup-name-container .fa-file {
+    color: #6c757d;
+}
+
+.pdf-viewer-body iframe {
+    border: none;
+    background: #f8f9fa;
+}
+
+/* For CSV files */
+.pdf-viewer-body iframe[src*=".csv"] {
+    background: #ffffff;
+}
+
+/* For text-based files */
+.pdf-viewer-body pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}

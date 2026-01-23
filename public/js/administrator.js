@@ -156,8 +156,25 @@ class CalendarManager {
             color: existingColor
         });
     }
-
-    async openModalForDate(date) {
+     isPastDate(dateString) {
+        if (!dateString) return false;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const [year, month, day] = dateString.split('-');
+        const compareDate = new Date(year, month - 1, day);
+        compareDate.setHours(0, 0, 0, 0);
+        
+        return compareDate < today;
+    }
+     async openModalForDate(date) {
+        // Check if the date is in the past
+        if (this.isPastDate(date)) {
+            this.showMessage('Cannot edit past dates', 'error');
+            return;
+        }
+        
         this.modalSelectedDate = date;
         
         // Format date for display
@@ -197,91 +214,179 @@ class CalendarManager {
         $('#dateDescriptionInput').val('');
     }
 
-       populateTimeSlotsTable() {
-    const tableBody = $('#timeSlotsTableBody');
-    tableBody.empty();
-    
-    this.timeSlots.forEach(slot => {
-        const row = `
-            <tr class="time-slot-row" data-time-slot="${slot.slot}" data-time-range="${slot.display}">
-                <td>
-                    <div class="time-display">${slot.display}</div>
-                </td>
-                <td>
-                    <input type="number" 
-                           class="form-control form-control-sm time-slot-number" 
-                           value="${slot.slot}"
-                           min="1" 
-                           max="24"
-                           style="border: 1px solid #ced4da; width: 80px;">
-                </td>
-                <td>
-                    <input type="text" 
-                           class="form-control form-control-sm time-slot-description" 
-                           placeholder="Description for this time slot" 
-                           style="border: 1px solid #ced4da;">
-                </td>
-                <td style="width: 60px; text-align: center;">
-                    <div class="time-slot-color-indicator"></div>
-                </td>
-            </tr>
-        `;
-        tableBody.append(row);
-    });
-    
-    // Load existing time slot data
-    this.loadTimeSlotData();
-    
-    // Make time slots clickable for color selection (but not interfere with inputs)
-    this.initializeTimeSlotInteractions();
-}
+    populateTimeSlotsTable() {
+        const tableBody = $('#timeSlotsTableBody');
+        tableBody.empty();
+        
+        // Get current date and time
+        const now = new Date();
+        const todayStr = this.formatDate(now);
+        
+        // Check if this is today's date
+        const isToday = this.modalSelectedDate === todayStr;
+        
+        this.timeSlots.forEach(slot => {
+            // Check if this time slot is in the past (for today only)
+            let isPastTimeSlot = false;
+            if (isToday) {
+                // Parse the start time from the time slot display
+                const startTimeStr = slot.display.split(' - ')[0]; // Get "8:00 AM"
+                const [time, period] = startTimeStr.split(' ');
+                const [hours, minutes] = time.split(':').map(Number);
+                
+                // Convert to 24-hour format
+                let hour24 = hours;
+                if (period === 'PM' && hour24 !== 12) {
+                    hour24 += 12;
+                } else if (period === 'AM' && hour24 === 12) {
+                    hour24 = 0;
+                }
+                
+                // Create a date object for this time slot
+                const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour24, minutes);
+                
+                // Check if this time slot is in the past
+                isPastTimeSlot = slotTime < now;
+            }
+            
+            // Check if this slot has existing data
+            const existingData = this.existingTimeSlotData[slot.slot];
+            const hasColor = existingData && existingData.color;
+            
+            // Determine the slot number to display
+            // If no color is set, show 0. Otherwise show the original slot number
+            const slotNumberValue = hasColor ? slot.slot : 0;
+            
+            const row = `
+                <tr class="time-slot-row ${isPastTimeSlot ? 'past-time-slot' : ''}" 
+                    data-time-slot="${slot.slot}" 
+                    data-time-range="${slot.display}"
+                    ${isPastTimeSlot ? 'data-past="true"' : ''}>
+                    <td>
+                        <div class="time-display">${slot.display}</div>
+                    </td>
+                    <td>
+                        <input type="number" 
+                               class="form-control form-control-sm time-slot-number" 
+                               value="${slotNumberValue}"
+                               min="0" 
+                               max="24"
+                               style="border: 1px solid #ced4da; width: 80px;"
+                               ${isPastTimeSlot ? 'disabled' : ''}>
+                    </td>
+                    <td>
+                        <input type="text" 
+                               class="form-control form-control-sm time-slot-description" 
+                               placeholder="Description for this time slot" 
+                               style="border: 1px solid #ced4da;"
+                               ${isPastTimeSlot ? 'disabled' : ''}>
+                    </td>
+                    <td style="width: 60px; text-align: center;">
+                        <div class="time-slot-color-indicator"></div>
+                    </td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+        
+        // Load existing time slot data
+        this.loadTimeSlotData();
+        
+        // Make time slots clickable for color selection (but not interfere with inputs)
+        this.initializeTimeSlotInteractions();
+        
+        // Update slot numbers based on color status
+        this.updateSlotNumbersBasedOnColor();
+    }
+    updateSlotNumbersBasedOnColor() {
+        $('.time-slot-row').each((index, row) => {
+            const $row = $(row);
+            const hasColor = $row.hasClass('color-red') || $row.hasClass('color-green');
+            const originalSlot = $row.data('time-slot');
+            
+            if (!hasColor) {
+                // If no color, set slot number to 0
+                $row.find('.time-slot-number').val(0);
+            } else {
+                // If has color, ensure slot number is not 0
+                const currentValue = parseInt($row.find('.time-slot-number').val());
+                if (currentValue === 0) {
+                    $row.find('.time-slot-number').val(originalSlot);
+                }
+            }
+        });
+    }
  initializeTimeSlotInteractions() {
-    // Remove previous event listeners to prevent duplicates
-    $('.time-slot-row').off('click').off('dblclick');
+        // Remove previous event listeners to prevent duplicates
+        $('.time-slot-row').off('click').off('dblclick');
 
-    // When a time slot row is clicked, select it for color editing
-    $('.time-slot-row').on('click', (e) => {
-        // Don't trigger if clicking on input fields or their children
-        if ($(e.target).is('input') || 
-            $(e.target).is('textarea') || 
-            $(e.target).hasClass('form-control') ||
-            $(e.target).closest('input, textarea, .form-control').length > 0) {
-            return;
-        }
-        
-        const $row = $(e.currentTarget);
-        this.selectModalTimeSlot($row);
-    });
+        // When a time slot row is clicked, select it for color editing
+        $('.time-slot-row').on('click', (e) => {
+            // Don't trigger if clicking on input fields or their children
+            if ($(e.target).is('input') || 
+                $(e.target).is('textarea') || 
+                $(e.target).hasClass('form-control') ||
+                $(e.target).closest('input, textarea, .form-control').length > 0) {
+                return;
+            }
+            
+            const $row = $(e.currentTarget);
+            
+            // Don't allow selection of past time slots
+            if ($row.hasClass('past-time-slot')) {
+                this.showMessage('Past time slots cannot be edited', 'error');
+                return;
+            }
+            
+            this.selectModalTimeSlot($row);
+        });
 
-    // Add color change on double-click for quick editing
-    $('.time-slot-row').on('dblclick', (e) => {
-        // Don't trigger if clicking on input fields
-        if ($(e.target).is('input') || 
-            $(e.target).is('textarea') || 
-            $(e.target).hasClass('form-control') ||
-            $(e.target).closest('input, textarea, .form-control').length > 0) {
-            return;
-        }
-        
-        const $row = $(e.currentTarget);
-        this.quickToggleTimeSlotColor($row);
-    });
+        // Add color change on double-click for quick editing
+        $('.time-slot-row').on('dblclick', (e) => {
+            // Don't trigger if clicking on input fields
+            if ($(e.target).is('input') || 
+                $(e.target).is('textarea') || 
+                $(e.target).hasClass('form-control') ||
+                $(e.target).closest('input, textarea, .form-control').length > 0) {
+                return;
+            }
+            
+            const $row = $(e.currentTarget);
+            
+            // Don't allow editing of past time slots
+            if ($row.hasClass('past-time-slot')) {
+                this.showMessage('Past time slots cannot be edited', 'error');
+                return;
+            }
+            
+            this.quickToggleTimeSlotColor($row);
+        });
 
-    // Make sure input fields are fully functional
-    $('.time-slot-description, .time-slot-number').off('focus').on('focus', function(e) {
-        e.stopPropagation();
-        $(this).closest('.time-slot-row').removeClass('selected');
-    });
+        // Make sure input fields are fully functional (only for non-past slots)
+        $('.time-slot-description, .time-slot-number').off('focus').on('focus', function(e) {
+            e.stopPropagation();
+            const $row = $(this).closest('.time-slot-row');
+            if (!$row.hasClass('past-time-slot')) {
+                $row.removeClass('selected');
+            }
+        });
 
-    $('.time-slot-description, .time-slot-number').off('click').on('click', function(e) {
-        e.stopPropagation();
-    });
+        $('.time-slot-description, .time-slot-number').off('click').on('click', function(e) {
+            e.stopPropagation();
+        });
 
-    $('.time-slot-description, .time-slot-number').off('input').on('input', function(e) {
-        e.stopPropagation();
-    });
-}
+        $('.time-slot-description, .time-slot-number').off('input').on('input', function(e) {
+            e.stopPropagation();
+        });
+    }
+
  quickToggleTimeSlotColor($row) {
+        // Don't allow editing of past time slots
+        if ($row.hasClass('past-time-slot')) {
+            this.showMessage('Past time slots cannot be edited', 'error');
+            return;
+        }
+        
         const currentColor = $row.hasClass('color-red') ? 'red' : 
                            $row.hasClass('color-green') ? 'green' : null;
         
@@ -309,7 +414,23 @@ class CalendarManager {
         $row.find('.time-slot-color-indicator')
             .removeClass('color-red color-green')
             .addClass(`color-${color}`);
+        
+        // Update slot number based on color status
+        const originalSlot = $row.data('time-slot');
+        const $slotNumberInput = $row.find('.time-slot-number');
+        
+        if (color) {
+            // If color is being set, ensure slot number is not 0
+            const currentValue = parseInt($slotNumberInput.val());
+            if (currentValue === 0) {
+                $slotNumberInput.val(originalSlot);
+            }
+        } else {
+            // If color is being removed, set slot number to 0
+            $slotNumberInput.val(0);
+        }
     }
+
     async loadModalData(date) {
         try {
             console.log('Loading modal data for date:', date);
@@ -346,6 +467,8 @@ class CalendarManager {
                 if (data.color) {
                     $row.addClass(`color-${data.color}`);
                     $row.find('.time-slot-color-indicator').addClass(`color-${data.color}`);
+                    // Set slot number to the actual slot (not 0)
+                    $row.find('.time-slot-number').val(slot);
                 }
                 if (data.description) {
                     $row.find('.time-slot-description').val(data.description);
@@ -354,110 +477,116 @@ class CalendarManager {
         });
     }
 
+
     async saveModalChanges() {
-    if (!this.modalSelectedDate) return;
-    
-    try {
-        // Show loading state
-        $('#saveModalChanges').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        if (!this.modalSelectedDate) return;
         
-        // Prepare data for saving
-        const saveData = {
-            date: this.modalSelectedDate,
-            date_color: this.modalDateColor,
-            date_description: $('#dateDescriptionInput').val().trim(),
-            time_slots: {}
-        };
-        
-        console.log('Date-level data:', {
-            date_color: saveData.date_color,
-            date_description: saveData.date_description
-        });
-        
-        // Collect time slot data - include ALL time slots, not just colored ones
-        let timeSlotsCount = 0;
-        $('.time-slot-row').each((index, row) => {
-            const $row = $(row);
-            const originalSlot = $row.data('time-slot'); // Original slot from data attribute
-            const editedSlot = parseInt($row.find('.time-slot-number').val()); // Editable slot number from input
-            const color = $row.hasClass('color-red') ? 'red' : 
-                         $row.hasClass('color-green') ? 'green' : null;
-            const description = $row.find('.time-slot-description').val().trim();
+        try {
+            // Show loading state
+            $('#saveModalChanges').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
             
-            // Use the edited slot number if valid, otherwise fall back to original
-            const finalSlot = !isNaN(editedSlot) && editedSlot >= 1 && editedSlot <= 24 ? editedSlot : originalSlot;
+            // Prepare data for saving
+            const saveData = {
+                date: this.modalSelectedDate,
+                date_color: this.modalDateColor,
+                date_description: $('#dateDescriptionInput').val().trim(),
+                time_slots: {}
+            };
             
-            // Always include the slot, but only set color if it exists
-            // This allows us to clear colors by not including them
-            if (color) {
-                saveData.time_slots[finalSlot] = {
-                    color: color,
-                    description: description
-                };
-                timeSlotsCount++;
+            console.log('Date-level data:', {
+                date_color: saveData.date_color,
+                date_description: saveData.date_description
+            });
+            
+            // Collect time slot data
+            let timeSlotsCount = 0;
+            $('.time-slot-row').each((index, row) => {
+                const $row = $(row);
+                const originalSlot = $row.data('time-slot'); // Original slot from data attribute
+                const editedSlot = parseInt($row.find('.time-slot-number').val()); // Editable slot number from input
+                const color = $row.hasClass('color-red') ? 'red' : 
+                             $row.hasClass('color-green') ? 'green' : null;
+                const description = $row.find('.time-slot-description').val().trim();
                 
-                console.log(`Time slot ${originalSlot} -> ${finalSlot}:`, {
-                    color: color,
-                    description: description
-                });
-            }
-        });
-        
-        console.log('Saving data:', {
-            date: saveData.date,
-            date_color: saveData.date_color,
-            time_slots_count: timeSlotsCount,
-            time_slots: saveData.time_slots
-        });
-        
-        // Validate that we have at least date color or time slots
-        if (!saveData.date_color && Object.keys(saveData.time_slots).length === 0) {
-            this.showMessage('Please select at least a date color or time slot colors', 'error');
-            $('#saveModalChanges').prop('disabled', false).html('Save Changes');
-            return;
-        }
-        
-        // Save data
-        const response = await $.ajax({
-            url: '/calendar/save-date-data',
-            method: 'POST',
-            data: {
-                ...saveData,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            dataType: 'json'
-        });
-        
-        if (response.status === 'success') {
-            this.showMessage('Calendar data saved successfully!', 'success');
-            $('#colorSelectionModal').modal('hide');
-            
-            // Reload the current view to reflect changes
-            setTimeout(() => {
-                if (this.currentView === 'month') {
-                    this.loadMonthView();
-                } else {
-                    this.loadWeekView();
+                // Only save slots that have a color
+                if (color) {
+                    // Use the edited slot number if it's valid and not 0
+                    // Otherwise use the original slot number
+                    let finalSlot;
+                    if (!isNaN(editedSlot) && editedSlot > 0 && editedSlot <= 24) {
+                        finalSlot = editedSlot;
+                    } else {
+                        finalSlot = originalSlot;
+                    }
+                    
+                    saveData.time_slots[finalSlot] = {
+                        color: color,
+                        description: description
+                    };
+                    timeSlotsCount++;
+                    
+                    console.log(`Time slot ${originalSlot} -> ${finalSlot}:`, {
+                        color: color,
+                        description: description
+                    });
                 }
-            }, 500);
+            });
             
-        } else {
-            this.showMessage('Error saving data: ' + response.message, 'error');
+            console.log('Saving data:', {
+                date: saveData.date,
+                date_color: saveData.date_color,
+                time_slots_count: timeSlotsCount,
+                time_slots: saveData.time_slots
+            });
+            
+            // Validate that we have at least date color or time slots
+            if (!saveData.date_color && Object.keys(saveData.time_slots).length === 0) {
+                this.showMessage('Please select at least a date color or time slot colors', 'error');
+                $('#saveModalChanges').prop('disabled', false).html('Save Changes');
+                return;
+            }
+            
+            // Save data
+            const response = await $.ajax({
+                url: '/calendar/save-date-data',
+                method: 'POST',
+                data: {
+                    ...saveData,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json'
+            });
+            
+            if (response.status === 'success') {
+                this.showMessage('Calendar data saved successfully!', 'success');
+                $('#colorSelectionModal').modal('hide');
+                
+                // Reload the current view to reflect changes
+                setTimeout(() => {
+                    if (this.currentView === 'month') {
+                        this.loadMonthView();
+                    } else {
+                        this.loadWeekView();
+                    }
+                }, 500);
+                
+            } else {
+                this.showMessage('Error saving data: ' + response.message, 'error');
+            }
+            
+        } catch (error) {
+            console.error('Error saving modal data:', error);
+            let errorMessage = 'Error saving data. Please try again.';
+            
+            if (error.responseJSON && error.responseJSON.message) {
+                errorMessage = error.responseJSON.message;
+            }
+            
+            this.showMessage(errorMessage, 'error');
+        } finally {
+            $('#saveModalChanges').prop('disabled', false).html('Save Changes');
         }
-        
-    } catch (error) {
-        console.error('Error saving modal data:', error);
-        let errorMessage = 'Error saving data. Please try again.';
-        
-        if (error.responseJSON && error.responseJSON.message) {
-            errorMessage = error.responseJSON.message;
-        }
-        
-        this.showMessage(errorMessage, 'error');
-    } finally {
-        $('#saveModalChanges').prop('disabled', false).html('Save Changes');
     }
-}
 
     // MONTH VIEW FUNCTIONS
     
@@ -529,28 +658,73 @@ class CalendarManager {
         // Load month colors
         await this.loadMonthColors();
 
-        // Click handler - OPEN MODAL instead of selecting color
-        $('.day-cell:not(.other-month)').off('click').on('click', (e) => {
+        // Click handler - Only allow clicks on non-past dates
+        $('.day-cell:not(.past-date):not(.other-month)').off('click').on('click', (e) => {
             const date = $(e.currentTarget).data('date');
             if (date) {
                 this.openModalForDate(date);
             }
         });
+        
+        // Add specific styling for past dates
+        this.stylePastDates();
+    }
+        stylePastDates() {
+        $('.day-cell.past-date').each(function() {
+            const $cell = $(this);
+            
+            // Remove hover effects and cursor pointer
+            $cell.css({
+                'cursor': 'not-allowed',
+                'opacity': '0.6'
+            });
+            
+            // Remove any existing hover event handlers
+            $cell.off('mouseenter mouseleave');
+            
+            // Add a visual indicator that it's disabled
+            if (!$cell.find('.past-date-indicator').length) {
+                $cell.append('<div class="past-date-indicator" title="Past dates cannot be edited"></div>');
+            }
+        });
     }
     
-    createDayCell(day, date, isOtherMonth) {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-
-    return `
-        <div class="day-cell ${isOtherMonth ? 'other-month' : ''}" 
-            data-date="${dateStr}">
-            <span>${date.getDate()}</span>
-        </div>
-    `;
-}
+  createDayCell(day, date, isOtherMonth) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        
+        // Get today's date (without time)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Create date for comparison (without time)
+        const cellDate = new Date(yyyy, mm - 1, dd);
+        cellDate.setHours(0, 0, 0, 0);
+        
+        // Check if the date is in the past (excluding today)
+        const isPastDate = cellDate < today;
+        
+        // Check if the date is today
+        const isToday = cellDate.getTime() === today.getTime();
+        
+        // Add appropriate classes
+        let additionalClasses = '';
+        if (isPastDate) {
+            additionalClasses += 'past-date ';
+        }
+        if (isToday) {
+            additionalClasses += 'current-date ';
+        }
+        
+        return `
+            <div class="day-cell ${isOtherMonth ? 'other-month' : ''} ${additionalClasses}" 
+                data-date="${dateStr}">
+                <span>${date.getDate()}</span>
+            </div>
+        `;
+    }
 
     async loadMonthColors() {
     const month = this.currentDate.toISOString().substring(0, 7);

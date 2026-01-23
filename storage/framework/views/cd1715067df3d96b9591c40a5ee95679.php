@@ -37,14 +37,36 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
-                <a href="<?php echo e(url('/email-chat')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('email-chat') ? 'active' : ''); ?>">
+                <a href="#messagesSubmenu" 
+                class="list-group-item list-group-item-action <?php echo e(request()->is('email-chat') || request()->is('messages/*') ? 'active' : ''); ?>"
+                data-bs-toggle="collapse" 
+                aria-expanded="<?php echo e(request()->is('email-chat') || request()->is('messages/*') ? 'true' : 'false'); ?>">
                     <i class="fas fa-envelope"></i>
-                    <span>Email Chat</span>
+                    <span>Messages</span>
+                    <i class="fas fa-chevron-down"></i>
                 </a>
-                <a href="<?php echo e(url('/messages')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('messages') ? 'active' : ''); ?>">
+                <div class="submenu collapse <?php echo e(request()->is('email-chat') || request()->is('messages/*') ? 'show' : ''); ?> list-group" id="messagesSubmenu">
+                    <a href="<?php echo e(route('messages.email')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('email-chat') ? 'active' : ''); ?>">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </a>
+                    <a href="<?php echo e(route('messages.sms')); ?>" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sms"></i>
+                        <span>SMS</span>
+                    </a>
+                    <a href="<?php echo e(route('messages.system-chat')); ?>" class="list-group-item list-group-item-action">
+                        <i class="fas fa-comments"></i>
+                        <span>System Chatting</span>
+                    </a>
+                </div>
+                <a href="<?php echo e(url('/practice-areas')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('practice-areas') ? 'active' : ''); ?>">
+                    <i class="fa-solid fa-suitcase"></i>
+                    <span>Practice Areas</span>
+                </a>
+             <!--<a href="<?php echo e(url('/messages')); ?>" class="list-group-item list-group-item-action <?php echo e(request()->is('messages') ? 'active' : ''); ?>">
                     <i class="fas fa-comments"></i>
                     <span>Messages</span>
-                </a>
+                </a>-->
 
                 <a href="#requestsSubmenu" class="list-group-item list-group-item-action" data-bs-toggle="collapse" aria-expanded="false">
                     <i class="fas fa-list-alt"></i>

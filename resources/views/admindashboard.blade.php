@@ -36,11 +36,34 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
-                <a href="{{ url('/email-chat') }}" class="list-group-item list-group-item-action {{ request()->is('email-chat') ? 'active' : '' }}">
+                <a href="#messagesSubmenu" 
+                class="list-group-item list-group-item-action {{ request()->is('email-chat') || request()->is('messages/*') ? 'active' : '' }}"
+                data-bs-toggle="collapse" 
+                aria-expanded="{{ request()->is('email-chat') || request()->is('messages/*') ? 'true' : 'false' }}">
                     <i class="fas fa-envelope"></i>
-                    <span>Email Chat</span>
+                    <span>Messages</span>
+                    <i class="fas fa-chevron-down"></i>
                 </a>
-                                <a href="#requestsSubmenu" class="list-group-item list-group-item-action" data-bs-toggle="collapse" aria-expanded="false">
+                <div class="submenu collapse {{ request()->is('email-chat') || request()->is('messages/*') ? 'show' : '' }} list-group" id="messagesSubmenu">
+                    <a href="{{ route('messages.email') }}" class="list-group-item list-group-item-action {{ request()->is('email-chat') ? 'active' : '' }}">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email</span>
+                    </a>
+                    <a href="{{ route('messages.sms') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sms"></i>
+                        <span>SMS</span>
+                    </a>
+                    <a href="{{ route('messages.system-chat') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-comments"></i>
+                        <span>System Chatting</span>
+                    </a>
+                </div>
+                <a href="{{ url('/practice-areas') }}" class="list-group-item list-group-item-action {{ request()->is('practice-areas') ? 'active' : '' }}">
+                    <i class="fa-solid fa-suitcase"></i>
+                    
+                    <span>Practice Areas</span>
+                </a>
+                <a href="#requestsSubmenu" class="list-group-item list-group-item-action" data-bs-toggle="collapse" aria-expanded="false">
                     <i class="fas fa-list-alt"></i>
                     <span>Appointment Requests</span>
                     <i class="fas fa-chevron-down"></i>

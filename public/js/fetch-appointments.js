@@ -36,14 +36,22 @@ class FetchAppointments {
                 this.resetFilters();
             });
         }
+          // Save Excel button 
+        const saveExcelBtn = document.getElementById('saveExcelBtn');
+        if (saveExcelBtn) {
+            saveExcelBtn.addEventListener('click', () => {
+                this.saveExcelBackup();
+            });
+        }
 
-        // Save Backup button - NEW
+        // Save Backup button - Updated to PDF
         const saveBackupBtn = document.getElementById('saveBackupBtn');
         if (saveBackupBtn) {
             saveBackupBtn.addEventListener('click', () => {
-                this.saveBackup();
+                this.savePdfBackup();
             });
         }
+
 
         // Modal close events
         const appointmentModal = document.getElementById('appointmentModal');
@@ -58,9 +66,45 @@ class FetchAppointments {
             if (e.key === 'Escape') this.closeModal();
         });
     }
+    // NEW METHOD: Save Excel backup
+    async saveExcelBackup() {
+        const saveExcelBtn = document.getElementById('saveExcelBtn');
+        const originalText = saveExcelBtn.innerHTML;
+        
+        try {
+            // Show loading state
+            saveExcelBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            saveExcelBtn.disabled = true;
 
-    // NEW METHOD: Save backup - UPDATED FOR PDF
-async saveBackup() {
+            const response = await fetch('/appointments/backup-excel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    filter: this.currentStatus
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                this.showSuccessToast('Excel file saved successfully!');
+            } else {
+                throw new Error(result.message || 'Failed to save Excel file');
+            }
+        } catch (error) {
+            console.error('Error saving Excel file:', error);
+            alert('Failed to save Excel file: ' + error.message);
+        } finally {
+            // Restore button state
+            saveExcelBtn.innerHTML = originalText;
+            saveExcelBtn.disabled = false;
+        }
+    }
+// Updated method: Save PDF backup (renamed from saveBackup)
+async savePdfBackup() {
     const saveBackupBtn = document.getElementById('saveBackupBtn');
     const originalText = saveBackupBtn.innerHTML;
     
@@ -69,7 +113,6 @@ async saveBackup() {
         saveBackupBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
         saveBackupBtn.disabled = true;
 
-        // UPDATED: Use PDF backup endpoint instead of SQL
         const response = await fetch('/appointments/backup-pdf', {
             method: 'POST',
             headers: {
@@ -84,15 +127,13 @@ async saveBackup() {
         const result = await response.json();
 
         if (response.ok && result.success) {
-            this.showSuccessToast();
-            // Optional: You can trigger download immediately after creation
-            // this.downloadBackup(result.filename);
+            this.showSuccessToast('PDF file saved successfully!');
         } else {
-            throw new Error(result.message || 'Failed to save backup');
+            throw new Error(result.message || 'Failed to save PDF file');
         }
     } catch (error) {
-        console.error('Error saving backup:', error);
-        alert('Failed to save backup: ' + error.message);
+        console.error('Error saving PDF file:', error);
+        alert('Failed to save PDF file: ' + error.message);
     } finally {
         // Restore button state
         saveBackupBtn.innerHTML = originalText;
@@ -100,14 +141,21 @@ async saveBackup() {
     }
 }
 
+
     // NEW METHOD: Show success toast
-    showSuccessToast() {
-        const toastElement = document.getElementById('successToast');
-        if (toastElement) {
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
+    showSuccessToast(message = 'Backup saved successfully!') {
+    const toastElement = document.getElementById('successToast');
+    if (toastElement) {
+        // Update toast message
+        const toastBody = toastElement.querySelector('.toast-body');
+        if (toastBody) {
+            toastBody.textContent = message;
         }
+        
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
     }
+}
 
     // NEW METHOD: Reset all filters to default state
     resetFilters() {
@@ -122,6 +170,21 @@ async saveBackup() {
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.value = '';
+        }
+
+        // Reset button states if they were disabled
+        const saveExcelBtn = document.getElementById('saveExcelBtn');
+        const saveBackupBtn = document.getElementById('saveBackupBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        
+        if (saveExcelBtn) {
+            saveExcelBtn.disabled = false;
+            saveExcelBtn.innerHTML = '<i class="fas fa-file-excel me-2"></i>Save as Excel';
+        }
+        
+        if (saveBackupBtn) {
+            saveBackupBtn.disabled = false;
+            saveBackupBtn.innerHTML = '<i class="fas fa-file-pdf me-2"></i>Save as PDF';
         }
 
         // Reload appointments with default filters
@@ -200,7 +263,6 @@ async saveBackup() {
 
             return `
                 <tr>
-                    <td>${appointment.id}</td>
                     <td>${appointment.fullname || 'N/A'}</td>
                     <td>${appointment.email || 'N/A'}</td>
                     <td>${appointment.category || 'N/A'}</td>
