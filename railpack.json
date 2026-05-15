@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
   "$schema": "https://railpack.com/schema.json",
   "phpExtensions": [
     "zip"
   ]
+=======
+  "$schema": "https://schema.railpack.com",
+  "phpExtensions": ["zip"]
+>>>>>>> f9360a0ad54a665de7d376981b01cf8e4b4c1ec0
 }
