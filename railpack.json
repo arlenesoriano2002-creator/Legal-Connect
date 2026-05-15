@@ -1,19 +1,6 @@
 {
-  "$schema": "https://railpack.com/schema.json",
+  "$schema": "https://schema.railpack.com",
   "phpExtensions": [
-    "zip",
-    "ctype",
-    "curl",
-    "dom",
-    "fileinfo",
-    "filter",
-    "hash",
-    "mbstring",
-    "openssl",
-    "pcre",
-    "pdo",
-    "session",
-    "tokenizer",
-    "xml"
+    "zip"
   ]
 }
