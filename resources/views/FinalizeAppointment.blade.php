@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finalize Appointment</title>
     <link rel="stylesheet" href="{{ asset('css/FinalizeAppointment.blade.css') }}">
+
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+
 </head>
 <body>
     <div class="container">
@@ -45,6 +49,8 @@
                 <p><strong>Email:</strong> {{ $email }}</p>
                 <p><strong>Category:</strong> {{ $selected_category ?? 'Not specified' }}</p>
                 <p><strong>Case Type:</strong> {{ $selected_case_name ?? 'Not specified' }}</p>
+                <!-- Add Selected Branch Display -->
+                <p><strong>Selected Office:</strong> {{ $selected_branch ?? session('branch') ?? 'Not specified' }}</p>
                 <p><strong>Terms Approval:</strong> 
                     <span class="terms-status {{ $status_approval == 'approved' ? 'terms-approved' : 'terms-pending' }}">
                         {{ ucfirst($status_approval == 'approved' ? 'accepted' : 'pending') }}
@@ -61,6 +67,11 @@
                 <input type="hidden" name="email" value="{{ $email }}">
                 <input type="hidden" name="category" value="{{ $selected_category }}">
                 <input type="hidden" name="case_name" value="{{ $selected_case_name }}">
+                <!-- Add hidden input for branch with value -->
+                <input type="hidden" name="selected_branch" id="selected_branch" value="{{ $selected_branch }}">
+
+                <strong>Selected Branch:</strong>
+                <span id="selectedBranchText">{{ $selected_branch }}</span>
                 <input type="hidden" name="selected_date" value="{{ $date }}">
                 <input type="hidden" name="selected_time" value="{{ $time }}">
                 <input type="hidden" name="term_status" value="{{ $status_approval ?? 'Approved' }}">

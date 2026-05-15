@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ asset('css/TermsOfService.blade.css') }}">
+    
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+    
     <title>Terms of Service</title>
 </head>
 <body>
@@ -77,7 +81,7 @@
 
                 <div class="btn-group">
                     <button type="submit" class="btn btn-accept" id="acceptButton" disabled>Accept</button>
-                    <button class="btn btn-decline" type="button" onclick="window.location.href='{{ route('welcome') }}'">BACK</button>
+                    <button class="btn btn-decline" type="button" onclick="window.location.href='{{ route('welcome') }}'">Back</button>
                 </div>
             </form>
         </div>

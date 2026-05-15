@@ -17,46 +17,40 @@ class ClientRegisterController extends Controller
 
     public function register(Request $request)
     {
-        // Validate the request with new fields
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'country_code' => 'required|string',
             'phone_number' => 'required|digits_between:9,15',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-        ], [
-            'phone_number.required' => 'The phone number field is required.',
-            'phone_number.digits_between' => 'The phone number must be between 9 and 15 digits.',
-            'email.unique' => 'This email address is already registered.',
         ]);
 
-        // Check if validation fails
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return back()->withErrors($validator)->withInput();
         }
 
-        // Combine country code and phone number for cp_number field
         $cp_number = $request->country_code . $request->phone_number;
 
-        // Check if the combined phone number already exists
         if (User::where('cp_number', $cp_number)->exists()) {
-            return redirect()->back()
+            return back()
                 ->withErrors(['phone_number' => 'This phone number is already registered.'])
                 ->withInput();
         }
 
-        // Create the user
+        // ✅ SAFE USER CREATION
         $user = User::create([
             'name' => $request->name,
-            'cp_number' => $cp_number, // Store combined number
+            'cp_number' => $cp_number,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'client', // Set default role
         ]);
 
-        // Redirect to success page or login
+        // ✅ FORCE SECURE VALUES
+        $user->role = 'client';
+        $user->is_verified = 0;
+        $user->active_status = 0;
+        $user->save();
+
         return redirect()->route('login')
             ->with('success', 'Registration successful! Please login.');
     }

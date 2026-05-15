@@ -1,0 +1,247 @@
+body {
+    font-family: "Segoe UI", sans-serif;
+    color: #1f1f1f;
+    background:#e5e5e5;
+    
+}
+
+/* HEADER */
+.logbook-header {
+    border-bottom: 1px solid #e6e6e6;
+    padding: 20px 0;
+    background: #ffffff;
+}
+
+.logo-box {
+    width: 48px;
+    height: 48px;
+    background: #c79a1b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.logbook-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.logbook-header p {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+}
+
+.header-dots span {
+    width: 6px;
+    height: 6px;
+    background: #c79a1b;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 6px;
+}
+
+/* CONTENT */
+.logbook-container {
+    max-width: 850px;
+    margin: 20px auto;
+    text-align: center;
+
+}
+
+.logbook-container h2 {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 40px;
+}
+
+.form-card {
+    background: #fff;
+    padding: 40px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-radius: 4px;
+    text-align: left;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-label i {
+    color: #c79a1b;
+    margin-right: 6px;
+}
+
+.form-control,
+.form-select {
+    height: 48px;
+    border-radius: 2px;
+}
+
+.btn-submit {
+    background: linear-gradient(to right, #c79a1b, #a88215);
+    color: #fff;
+    border: none;
+    height: 52px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.btn-submit:hover {
+    opacity: 0.95;
+}
+
+/* CLOCK */
+.clock-box {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.clock-icon {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #c79a1b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c79a1b;
+    margin-right: 12px;
+}
+
+.clock-text h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.clock-text p {
+    margin: 0;
+    font-size: 12px;
+    color: #777;
+}
+/* Success Modal Notification - Position at top right */
+.success-modal {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    min-width: 350px;
+    max-width: 450px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    padding: 20px 25px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-left: 5px solid #2E7D32;
+    font-family: 'Segoe UI', sans-serif;
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;
+}
+
+.success-modal.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.success-modal-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.success-modal-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 18px;
+}
+
+.success-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.success-modal-body {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-left: 55px;
+    padding-right: 10px;
+}
+
+.success-modal-time {
+    font-weight: 600;
+    color: #E8F5E9;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.success-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.success-modal-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+/* Add validation styling */
+input:invalid {
+    border-color: #dc3545 !important;
+}
+
+input:valid {
+    border-color: #198754 !important;
+}
+
+.form-text.text-muted {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.invalid-feedback {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+}

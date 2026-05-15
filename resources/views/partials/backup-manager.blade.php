@@ -97,8 +97,13 @@
               <i class="fa-solid fa-times"></i>
           </button>
       </div>
-      <div class="pdf-viewer-body">
-          <iframe id="pdfViewerFrame" src="" width="100%" height="100%" frameborder="0"></iframe>
+      <div class="pdf-viewer-body" style="position: relative;">
+          <!-- Loading indicator will be inserted here by JavaScript -->
+          <iframe id="pdfViewerFrame" src="" 
+                  width="100%" 
+                  height="500px" 
+                  frameborder="0"
+                  style="border: 1px solid #dee2e6; border-radius: 4px;"></iframe>
       </div>
       <div class="pdf-viewer-footer">
           <button id="pdfDownloadBtn" class="backup-btn download-btn">
@@ -107,8 +112,62 @@
           <button type="button" class="backup-btn close-pdf-viewer">
               Close
           </button>
+          <button id="debugPdfBtn" class="btn btn-sm btn-info mt-2">
+            <i class="fa-solid fa-bug"></i> Debug PDF View
+          </button>
+      </div>
+  </div>
+</div>
+<!-- Add this debug button somewhere in the file -->
+
+<div id="csvPreviewContainer" style="max-height:70vh; overflow:auto;"></div>
+
+<!-- Add this after the PDF Viewer Modal -->
+<!-- NEW: CSV VIEWER MODAL -->
+<div id="csvViewerModal" class="pdf-viewer-modal">
+  <div class="pdf-viewer-backdrop"></div>
+  <div class="pdf-viewer-container">
+      <div class="pdf-viewer-header">
+          <h3 id="csvViewerTitle">CSV File Preview</h3>
+          <button type="button" class="csv-viewer-close">
+              <i class="fa-solid fa-times"></i>
+          </button>
+      </div>
+      <div class="pdf-viewer-body" style="position: relative; max-height: 70vh; overflow-y: auto;">
+          <div id="csvViewerBody"></div>
+      </div>
+      <div class="pdf-viewer-footer">
+          <button id="csvDownloadBtn" class="backup-btn download-btn">
+              <i class="fa-solid fa-file-arrow-down"></i> Download
+          </button>
+          <button type="button" class="backup-btn close-csv-viewer">
+              Close
+          </button>
       </div>
   </div>
 </div>
 
+<!-- Remove or modify the existing container -->
+<div id="csvPreviewContainer" style="display: none;"></div>
+
+<script>
+document.getElementById('debugPdfBtn').addEventListener('click', function() {
+    // Get the first backup card with PDF
+    const firstPdfCard = document.querySelector('.backup-card');
+    if (firstPdfCard) {
+        const backupId = firstPdfCard.querySelector('.view-btn').getAttribute('data-backup-id');
+        const fileName = firstPdfCard.querySelector('.backup-name').textContent;
+        
+        console.log('Debug Info:', {
+            backupId,
+            fileName,
+            viewUrl: `/backup/view/${backupId}?inline=true`,
+            downloadUrl: `/backup/download/${backupId}`
+        });
+        
+        // Test the URL
+        window.open(`/debug-pdf-view/${backupId}`, '_blank');
+    }
+});
+</script>
 <script src="{{ asset('js/backup-manager.js') }}"></script>

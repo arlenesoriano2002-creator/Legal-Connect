@@ -8,7 +8,160 @@ let chatConfig = {};
 let conversationPolling = null;
 let messagePolling = null;
 let lastMessageId = 0;
+let lastUpdateTime = 0; // ADD THIS LINE - Fix for ReferenceError
+let currentClientStatus = null;
+let pusher = null;
+let currentChannel = null;
+let adminChannel = null;
 const UPDATE_THROTTLE = 1000;
+
+function hasUsablePusherConfig(broadcastDriver, key, cluster) {
+    if (broadcastDriver !== 'pusher') {
+        return false;
+    }
+
+    const normalizedKey = String(key || '').trim().toLowerCase();
+
+    return Boolean(cluster) &&
+        normalizedKey !== '' &&
+        normalizedKey !== 'your_app_key' &&
+        normalizedKey !== 'null';
+}
+
+function getSelectedClientId() {
+    const clientIdInput = document.getElementById('client-id');
+    return clientIdInput && clientIdInput.value ? clientIdInput.value : null;
+}
+
+function getUserStatusMeta(activeStatus) {
+    const isOnline = Number(activeStatus) === 1;
+
+    return {
+        activeStatus: isOnline ? 1 : 0,
+        isOnline,
+        text: isOnline ? 'Online' : 'Offline',
+        className: isOnline ? 'online' : 'offline'
+    };
+}
+
+function renderUserStatusBadge(activeStatus) {
+    const status = getUserStatusMeta(activeStatus);
+
+    return `
+        <span class="user-status-indicator ${status.className}">
+            <span class="status-dot"></span>${status.text}
+        </span>
+    `;
+}
+
+function updateStatusBadgeElement(container, activeStatus, selector = '.user-status-indicator') {
+    if (!container) return;
+
+    const existingBadge = container.querySelector(selector);
+    if (existingBadge) {
+        existingBadge.outerHTML = renderUserStatusBadge(activeStatus);
+    }
+}
+
+function applyRealtimeClientStatusUpdate(user) {
+    if (!user || !user.id) return;
+
+    const activeStatus = Number(user.active_status) === 1 ? 1 : 0;
+    const userId = String(user.id);
+
+    document.querySelectorAll(`.conversation-item[data-client-id="${userId}"]`).forEach(item => {
+        item.setAttribute('data-client-status', String(activeStatus));
+        updateStatusBadgeElement(item, activeStatus);
+    });
+
+    document.querySelectorAll(`.client-item[data-client-id="${userId}"]`).forEach(item => {
+        item.setAttribute('data-client-status', String(activeStatus));
+        updateStatusBadgeElement(item, activeStatus);
+    });
+
+    if (String(getSelectedClientId() || '') === userId) {
+        updateCurrentClientStatus(activeStatus);
+    }
+}
+
+function updateVideoCallButtonState(activeStatus = null) {
+    const videoCallButton = document.getElementById('video-call-btn');
+    if (!videoCallButton) return;
+
+    const selectedClientId = getSelectedClientId();
+    const hasSelectedClient = Boolean(selectedClientId);
+
+    if (!hasSelectedClient) {
+        videoCallButton.disabled = true;
+        videoCallButton.setAttribute('aria-disabled', 'true');
+        videoCallButton.title = 'Select an online client to start a video call';
+        return;
+    }
+
+    const status = getUserStatusMeta(activeStatus);
+    videoCallButton.disabled = !status.isOnline;
+    videoCallButton.setAttribute('aria-disabled', status.isOnline ? 'false' : 'true');
+    videoCallButton.title = status.isOnline
+        ? 'Start Video Call'
+        : 'Video call unavailable while this client is offline';
+}
+
+function updateCurrentClientStatus(activeStatus = null) {
+    const statusElement = document.getElementById('current-client-status');
+
+    if (activeStatus === null || activeStatus === undefined || activeStatus === '') {
+        currentClientStatus = null;
+
+        if (statusElement) {
+            statusElement.innerHTML = '';
+            statusElement.classList.add('d-none');
+        }
+
+        updateVideoCallButtonState(null);
+        return;
+    }
+
+    const status = getUserStatusMeta(activeStatus);
+    currentClientStatus = status.activeStatus;
+
+    if (statusElement) {
+        statusElement.innerHTML = renderUserStatusBadge(status.activeStatus);
+        statusElement.classList.remove('d-none');
+    }
+
+    updateVideoCallButtonState(status.activeStatus);
+}
+
+function syncSelectedClientStatus(conversations = [], clients = []) {
+    const selectedClientId = getSelectedClientId();
+
+    if (!selectedClientId) {
+        if (!currentConversationId) {
+            updateCurrentClientStatus(null);
+        }
+        return;
+    }
+
+    let matchedClient = null;
+
+    if (Array.isArray(conversations)) {
+        matchedClient = conversations.find(conv => String(conv.client_id) === String(selectedClientId))?.client || null;
+    }
+
+    if (!matchedClient && Array.isArray(clients)) {
+        matchedClient = clients.find(client => String(client.id) === String(selectedClientId)) || null;
+    }
+
+    if (matchedClient) {
+        updateCurrentClientStatus(matchedClient.active_status);
+    }
+}
+
+function showLogoutConfirmation() { // ADD THIS FUNCTION
+    const logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmationModal'));
+    logoutModal.show();
+}
+
 function ensureScrollableMessages() {
     const messagesContainer = document.getElementById('messages-container');
     if (!messagesContainer) return;
@@ -41,8 +194,9 @@ function ensureScrollableMessages() {
 }
 
 // Call this function when DOM is loaded and when window resizes
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     ensureScrollableMessages();
+    updateVideoCallButtonState(null);
     
     // Also call on window resize
     window.addEventListener('resize', ensureScrollableMessages);
@@ -67,45 +221,6 @@ function scrollToBottom() {
     }
 }
 
-// Call ensureScrollableMessages when selecting a conversation
-async function selectConversation(conversationId, clientId, clientName, clientEmail) {
-    try {
-        // ... existing code ...
-        
-        // Load messages
-        await loadMessages(conversationId);
-        
-        // Ensure messages container is scrollable
-        setTimeout(ensureScrollableMessages, 100);
-        
-        // ... rest of existing code ...
-    } catch (error) {
-        console.error('Error selecting conversation:', error);
-        showNotification('Failed to load conversation: ' + error.message, 'danger');
-    }
-}
-function startConversationPolling() {
-    // Stop existing polling if any
-    if (conversationPolling) {
-        clearInterval(conversationPolling);
-    }
-    
-    // Poll for conversation updates every 3 seconds
-    conversationPolling = setInterval(() => {
-        if (!document.hidden) { // Only poll when tab is active
-            updateConversations();
-        }
-    }, 3000);
-    
-    console.log('Started conversation polling every 3 seconds');
-}
-function stopMessagePolling() {
-    if (messagePolling) {
-        clearInterval(messagePolling);
-        messagePolling = null;
-        console.log('Stopped message polling');
-    }
-}
 function startConversationPolling() {
     // Stop existing polling if any
     if (conversationPolling) {
@@ -122,6 +237,13 @@ function startConversationPolling() {
     console.log('Started conversation polling every 3 seconds');
 }
 
+function stopMessagePolling() {
+    if (messagePolling) {
+        clearInterval(messagePolling);
+        messagePolling = null;
+        console.log('Stopped message polling');
+    }
+}
 function startMessagePolling(conversationId) {
     // Stop existing message polling if any
     if (messagePolling) {
@@ -177,6 +299,8 @@ async function updateConversations() {
                 if (data.all_clients) {
                     displayAllClients(data.all_clients);
                 }
+
+                syncSelectedClientStatus(data.conversations || [], data.all_clients || []);
             }
         }
     } catch (error) {
@@ -194,7 +318,8 @@ function updateConversationListIfNeeded(newConversations) {
         currentMap[id] = {
             element: item,
             lastMessage: item.querySelector('.last-message')?.textContent || '',
-            unread: item.classList.contains('unread')
+            unread: item.classList.contains('unread'),
+            status: item.getAttribute('data-client-status') || '0'
         };
     });
     
@@ -213,10 +338,12 @@ function updateConversationListIfNeeded(newConversations) {
                 (lastMessage.sender_id == adminId ? 'You: ' : '') + truncateText(escapeHtml(lastMessage.message || ''), 30) : 
                 'No messages yet';
             const hasUnread = (conv.unread_count || 0) > 0;
+            const clientStatus = String(conv.client?.active_status ?? 0);
             
             if (!current || 
                 current.lastMessage !== lastMessageText || 
-                current.unread !== hasUnread) {
+                current.unread !== hasUnread ||
+                current.status !== clientStatus) {
                 needsUpdate = true;
                 break;
             }
@@ -378,6 +505,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Start polling for conversation updates
         startConversationPolling();
+
+        // Initialize real-time status updates if Pusher is configured
+        initializePusher();
     } else {
         console.error('chatConfig is not defined');
         showNotification('Failed to initialize chat: Configuration missing', 'danger');
@@ -439,12 +569,20 @@ function ensureInputAreaVisible() {
 }
 
 function initializePusher() {
-    if (!chatConfig.pusherKey || !chatConfig.pusherCluster) {
-        console.error('Pusher configuration missing');
+    if (!hasUsablePusherConfig(chatConfig.broadcastDriver, chatConfig.pusherKey, chatConfig.pusherCluster)) {
+        console.log('Real-time Pusher features disabled for current broadcasting configuration');
         return;
     }
 
     try {
+        if (pusher) {
+            try {
+                pusher.disconnect();
+            } catch (disconnectError) {
+                console.error('Failed to disconnect existing Pusher instance:', disconnectError);
+            }
+        }
+
         pusher = new Pusher(chatConfig.pusherKey, {
             cluster: chatConfig.pusherCluster,
             forceTLS: true,
@@ -460,7 +598,7 @@ function initializePusher() {
         console.log('Pusher initialized for admin ID:', adminId);
 
         // Subscribe to admin channel for all admin-related events
-        const adminChannel = pusher.subscribe('private-admin.' + adminId);
+        adminChannel = pusher.subscribe('private-admin.' + adminId);
         
         // Listen for new conversation created
         adminChannel.bind('App\\Events\\ChatMessageSent', function(data) {
@@ -478,6 +616,14 @@ function initializePusher() {
         adminChannel.bind('conversation.created', function(data) {
             console.log('New conversation created:', data);
             loadConversations();
+        });
+
+        adminChannel.bind('user.active-status.changed', function(data) {
+            console.log('User active status changed:', data);
+
+            if (data && data.user) {
+                applyRealtimeClientStatusUpdate(data.user);
+            }
         });
 
         // Bind to Pusher connection state changes
@@ -581,6 +727,8 @@ async function loadConversations() {
             } else {
                 displayAllClients([]);
             }
+
+            syncSelectedClientStatus(data.conversations || [], data.all_clients || []);
             
             // Initialize dropdowns with counts
             const convCount = data.conversations ? data.conversations.length : 0;
@@ -609,6 +757,7 @@ function clearCurrentConversation() {
     document.getElementById('current-client-email').textContent = '';
     document.getElementById('conversation-id').value = '';
     document.getElementById('client-id').value = '';
+    updateCurrentClientStatus(null);
     
     const messagesContainer = document.getElementById('messages-container');
     if (messagesContainer) {
@@ -641,15 +790,20 @@ function displayConversations(conversations) {
         const unreadCount = conv.unread_count || 0;
         const clientName = conv.client ? conv.client.name : 'Unknown Client';
         const clientEmail = conv.client ? conv.client.email : '';
+        const clientStatus = conv.client ? conv.client.active_status : 0;
         
         html += `
             <div class="conversation-item ${currentConversationId == conv.id ? 'active' : ''} ${unreadCount > 0 ? 'unread' : ''}" 
                   data-conversation-id="${conv.id}"
                   data-client-id="${conv.client_id}"
                   data-client-name="${clientName}"
-                  data-client-email="${clientEmail}">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="client-name">${escapeHtml(clientName)}</div>
+                  data-client-email="${clientEmail}"
+                  data-client-status="${clientStatus}">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="pe-2">
+                        <div class="client-name">${escapeHtml(clientName)}</div>
+                        ${renderUserStatusBadge(clientStatus)}
+                    </div>
                     ${unreadCount > 0 ? `<div class="unread-count">${unreadCount}</div>` : ''}
                 </div>
                 <div class="last-message">
@@ -669,8 +823,9 @@ function displayConversations(conversations) {
             const clientId = this.getAttribute('data-client-id');
             const clientName = this.getAttribute('data-client-name');
             const clientEmail = this.getAttribute('data-client-email');
+            const clientStatus = this.getAttribute('data-client-status');
             
-            selectConversation(conversationId, clientId, clientName, clientEmail);
+            selectConversation(conversationId, clientId, clientName, clientEmail, clientStatus);
             
             // Highlight selected conversation
             document.querySelectorAll('.conversation-item').forEach(i => i.classList.remove('active'));
@@ -682,7 +837,7 @@ function displayConversations(conversations) {
     });
 }
 
-async function selectConversation(conversationId, clientId, clientName, clientEmail) {
+async function selectConversation(conversationId, clientId, clientName, clientEmail, clientStatus = null) {
     try {
         console.log('Selecting conversation:', conversationId);
         
@@ -696,6 +851,11 @@ async function selectConversation(conversationId, clientId, clientName, clientEm
         // Set hidden inputs
         document.getElementById('conversation-id').value = conversationId;
         document.getElementById('client-id').value = clientId;
+        updateCurrentClientStatus(clientStatus);
+
+        if (typeof setCallRecipient === 'function' && clientId) {
+            setCallRecipient(parseInt(clientId, 10));
+        }
         
         // Start polling for messages in this conversation
         startMessagePolling(conversationId);
@@ -728,7 +888,7 @@ async function selectConversation(conversationId, clientId, clientName, clientEm
     }
 }
 
-async function selectNewClient(clientId, clientName, clientEmail) {
+async function selectNewClient(clientId, clientName, clientEmail, clientStatus = null) {
     try {
         console.log('Starting conversation with client:', clientId, clientName, clientEmail);
         
@@ -757,9 +917,10 @@ async function selectNewClient(clientId, clientName, clientEmail) {
             
             // If we got a conversation back, select it
             if (data.conversation) {
-                selectConversation(data.conversation.id, data.conversation.client_id, clientName, clientEmail);
+                const resolvedClientStatus = data.conversation.client?.active_status ?? clientStatus;
+                selectConversation(data.conversation.id, data.conversation.client_id, clientName, clientEmail, resolvedClientStatus);
             } else if (data.id) {
-                selectConversation(data.id, clientId, clientName, clientEmail);
+                selectConversation(data.id, clientId, clientName, clientEmail, clientStatus);
             }
             
             // Make typing bar visible
@@ -854,6 +1015,10 @@ async function loadMessages(conversationId) {
         
         if (data.success) {
             displayMessages(data.messages);
+
+            if (data.client) {
+                updateCurrentClientStatus(data.client.active_status);
+            }
             
             // Set last message ID
             if (data.messages && data.messages.length > 0) {
@@ -1204,14 +1369,6 @@ async function pollNewMessagesEfficient(conversationId) {
         console.log('Message polling error:', error);
     }
 }
-function scrollToBottom() {
-    const container = document.getElementById('messages-container');
-    if (container) {
-        setTimeout(() => {
-            container.scrollTop = container.scrollHeight;
-        }, 100);
-    }
-}
 
 function markConversationAsRead(conversationId) {
     const url = chatConfig.routes.markConversationAsRead.replace(':conversationId', conversationId);
@@ -1403,12 +1560,16 @@ function displayAllClients(clients) {
 
     let html = '';
     clients.forEach(client => {
+        const clientStatus = client.active_status ?? 0;
+
         html += `
             <div class="client-item" 
                  data-client-id="${client.id}"
                  data-client-name="${escapeHtml(client.name || 'Unknown')}"
-                 data-client-email="${escapeHtml(client.email || '')}">
+                 data-client-email="${escapeHtml(client.email || '')}"
+                 data-client-status="${clientStatus}">
                 <div class="client-name-display">${escapeHtml(client.name || 'Unknown Client')}</div>
+                ${renderUserStatusBadge(clientStatus)}
                 <div class="client-email-display">${escapeHtml(client.email || 'No email')}</div>
                 <span class="client-role-badge">${escapeHtml(client.role || 'Client')}</span>
             </div>
@@ -1423,8 +1584,9 @@ function displayAllClients(clients) {
             const clientId = this.getAttribute('data-client-id');
             const clientName = this.getAttribute('data-client-name');
             const clientEmail = this.getAttribute('data-client-email');
+            const clientStatus = this.getAttribute('data-client-status');
             
-            selectNewClient(clientId, clientName, clientEmail);
+            selectNewClient(clientId, clientName, clientEmail, clientStatus);
             
             // Highlight selected client
             document.querySelectorAll('.client-item').forEach(i => i.classList.remove('active'));
@@ -1489,7 +1651,12 @@ function initializeDropdowns(conversationsCount, clientsCount) {
 
 // Reconnect Pusher if disconnected
 function checkPusherConnection() {
-    if (pusher && pusher.connection.state !== 'connected') {
+    if (!pusher) {
+        initializePusher();
+        return;
+    }
+
+    if (pusher.connection.state !== 'connected') {
         console.log('Pusher disconnected, reconnecting...');
         initializePusher();
     }
@@ -1498,8 +1665,59 @@ function checkPusherConnection() {
 // Check connection every 30 seconds
 setInterval(checkPusherConnection, 30000);
 
+function formatPhoneForDisplay(phone) {
+    if (!phone) return '';
+    
+    // Remove non-numeric characters
+    phone = phone.replace(/\D/g, '');
+    
+    if (phone.length === 10) {
+        return '(' + phone.substring(0, 3) + ') ' + phone.substring(3, 6) + '-' + phone.substring(6);
+    } else if (phone.length === 11 && phone.startsWith('0')) {
+        return '(' + phone.substring(1, 4) + ') ' + phone.substring(4, 7) + '-' + phone.substring(7);
+    } else if (phone.length === 12 && phone.startsWith('63')) {
+        return '+63 ' + phone.substring(2, 5) + ' ' + phone.substring(5, 8) + ' ' + phone.substring(8);
+    }
+    
+    return phone;
+}
+
+// Optional: Add keyboard shortcut (Ctrl+Q) for logout
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'q') {
+        e.preventDefault();
+        // Use Bootstrap's modal directly
+        const logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmationModal'));
+        logoutModal.show();
+    }
+});
+
 // Make functions available globally if needed
 window.refreshConversations = refreshConversations;
 window.clearFile = clearFile;
 window.selectNewClient = selectNewClient;
 window.checkPusherConnection = checkPusherConnection;
+window.showLogoutConfirmation = showLogoutConfirmation; // ADD THIS LINE
+
+// Global notification functions
+window.markNotificationAsRead = function(id, element) {
+    fetch(`/admin/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && element) {
+            element.classList.remove('unread');
+            updateNotificationBadge(data.unread_count);
+        }
+    })
+    .catch(error => console.error('Error marking notification as read:', error));
+};
+
+window.refreshNotifications = function() {
+    loadNotifications();
+};

@@ -4,10 +4,15 @@ html, body {
   margin: 0;
   width: 100vw;
   background-color: #cfcdcd;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #333;
+}
+
+/* This makes the container stretch full height and use flexbox */
+.container {
+  display: flex;
+  height: 10vh;
+  flex: 1;
+  max-width: 100%;
+  gap: 25px;
 }
 
 /* Updated Side Navigation Styles */
@@ -26,7 +31,7 @@ html, body {
 }
 
 .sidebar-heading {
-    padding: 20px 15px;
+    padding: 10px;
     background: rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 18px;
@@ -36,6 +41,15 @@ html, body {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-heading img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .list-group-item {
@@ -45,9 +59,10 @@ html, body {
     padding: 12px 15px;
     border-left: 4px solid transparent;
     text-decoration: none;
-    display: block;
-    width: 100%;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
 }
 
 .list-group-item:hover, .list-group-item:focus {
@@ -66,6 +81,7 @@ html, body {
     margin-right: 10px;
     width: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .list-group-item .fa-chevron-down {
@@ -73,6 +89,7 @@ html, body {
     margin-top: 5px;
     font-size: 12px;
     transition: transform 0.3s;
+    margin-left: auto;
 }
 
 .list-group-item[aria-expanded="true"] .fa-chevron-down {
@@ -82,22 +99,38 @@ html, body {
 .submenu {
     padding-left: 30px;
     background: #293846;
+    
 }
 
 .submenu .list-group-item {
     padding: 8px 15px;
     font-size: 13px;
 }
-
-/* Page Content */
-#page-content-wrapper {
-    width: calc(100% - 220px);
-    margin-left: 220px;
-    padding: 0;
-    transition: all 0.3s;
+/* Ensure submenu stays visible when expanded */
+.submenu.show {
+    display: block !important;
 }
 
-/* Toggle Button - Hover effect removed */
+/* Prevent any interference with Bootstrap collapse */
+.collapse:not(.show) {
+    display: none;
+}
+
+.collapsing {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+}
+/* Page Content */
+#page-content-wrapper {
+  width: calc(100% - 220px);
+  margin-left: 220px;
+  padding: 0;
+  transition: all 0.3s;
+  margin-top: 60px; /* Add margin to prevent content from hiding under fixed bar */
+}
+
+/* Toggle Button */
 #menu-toggle {
     margin-bottom: 0;
     background-color: #cccccc;
@@ -106,31 +139,61 @@ html, body {
     padding: 8px 16px;
 }
 
+#menu-toggle:hover {
+    background-color: #cccccc;
+    color: #000;
+    transform: none;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+}
+
 /* Collapsed Sidebar */
 #wrapper.toggled #sidebar-wrapper {
     width: 70px;
 }
 
 #wrapper.toggled #page-content-wrapper {
-    width: calc(100% - 70px);
-    margin-left: 70px;
+  width: calc(100% - 70px);
+  margin-left: 70px;
 }
 
-#wrapper.toggled .sidebar-heading,
-#wrapper.toggled .list-group-item span:not(.fa) {
+/* Keep the logo visible when sidebar is collapsed */
+#wrapper.toggled .sidebar-heading {
+    padding: 15px 0;
+    justify-content: center;
+    height: auto;
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none; /* Hide the text "LegalConnect" */
+}
+
+#wrapper.toggled .sidebar-heading img {
+    margin: 0;
+    display: block; /* Ensure logo is visible */
+}
+
+/* Hide text labels and chevrons when collapsed */
+#wrapper.toggled .list-group-item span {
+    display: none;
+}
+
+#wrapper.toggled .list-group-item .fa-chevron-down {
     display: none;
 }
 
 #wrapper.toggled .list-group-item {
     text-align: center;
     padding: 15px 10px;
+    justify-content: center;
 }
 
 #wrapper.toggled .list-group-item i {
     margin-right: 0;
     font-size: 18px;
+    display: block;
 }
 
+/* Hide submenus when collapsed */
 #wrapper.toggled .submenu {
     display: none !important;
 }
@@ -144,6 +207,88 @@ aside.sidebar {
     display: none;
 }
 
+/* Update main content area */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .top-bar {
+    left: 70px;
+  }
+  
+  #page-content-wrapper {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+    margin-top: 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-bar {
+    left: 0;
+    right: 0;
+  }
+  
+  #page-content-wrapper {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 60px;
+  }
+  
+  #wrapper.toggled .top-bar {
+    left: 220px;
+  }
+  
+  #wrapper.toggled #page-content-wrapper {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    margin-top: 60px;
+  }
+}
+
+
+@media (max-width: 640px) {
+    #sidebar-wrapper {
+        width: 0;
+    }
+    
+    #page-content-wrapper {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    #wrapper.toggled #sidebar-wrapper {
+        width: 220px;
+    }
+    
+    #wrapper.toggled #page-content-wrapper {
+        width: calc(100% - 220px);
+        margin-left: 220px;
+    }
+    
+    /* Show text labels when sidebar is expanded on mobile */
+    #wrapper.toggled .sidebar-heading span {
+        display: inline;
+    }
+    
+    #wrapper.toggled .list-group-item span {
+        display: inline;
+    }
+    
+    #wrapper.toggled .list-group-item {
+        text-align: left;
+        justify-content: flex-start;
+    }
+    
+    #wrapper.toggled .list-group-item i {
+        margin-right: 10px;
+    }
+}
+
 /* Top bar styles */
 .top-bar {
   display: flex;
@@ -151,7 +296,18 @@ aside.sidebar {
   justify-content: space-between;
   background: #f9f9f9;
   padding: 10px 20px;
-  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  position: fixed;
+  top: 0;
+  left: 220px; /* Match sidebar width */
+  right: 0;
+  z-index: 1000;
+  height: 60px;
+  transition: left 0.3s ease;
+  
+}
+#wrapper.toggled .top-bar {
+  left: 70px;
 }
 
 .nav-logo {
@@ -198,11 +354,13 @@ aside.sidebar {
 
 /* CALENDAR STYLES - COMPACT VERSION */
 .calendar-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  min-height: calc(100vh - 60px); /* Full height minus top bar */
 }
+
 
 /* Color Panel */
 .color-panel {
@@ -333,12 +491,15 @@ aside.sidebar {
 
 /* COMPACT Month View Styles */
 .month-calendar {
-    max-width: 70%!important;
-    height: 100% !important;
-    overflow-x: auto;
-    padding: 10px !important;
-    margin: 0 auto !important;
+  max-width: 70% !important;
+  height: auto !important;
+  overflow-x: auto;
+  padding: 10px !important;
+  margin: 0 auto !important;
+  background-color:#dedede !important;
+  border-radius:10px;
 }
+
 
 .calendar-header {
     display: flex;
@@ -383,10 +544,10 @@ aside.sidebar {
 }
 
 .days-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px !important; /* Increased gap */
-    min-width: 400px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px !important;
+  min-width: 400px;
 }
 
 /* PROPERLY SIZED Day Cell Styles */
@@ -428,8 +589,9 @@ aside.sidebar {
     color: #9ca3af;
     background: #f9fafb;
 }
-.view-pane{
-    height: 550px!important;
+.view-pane {
+  height: calc(100vh - 180px) !important; /* Adjust for top bar and other elements */
+  overflow-y: auto;
 }
 /* Color Contrast Fix - White text on colored backgrounds */
 .day-cell.color-red,
@@ -589,41 +751,43 @@ aside.sidebar {
 }
 
 @media (max-width: 900px) {
-    #sidebar-wrapper {
-        width: 70px;
-    }
-    
-    #page-content-wrapper {
-        width: calc(100% - 70px);
-        margin-left: 70px;
-    }
-    
-    .sidebar-heading,
-    .list-group-item span:not(.fa) {
-        display: none;
-    }
-    
-    .list-group-item {
-        text-align: center;
-        padding: 15px 10px;
-    }
-    
-    .list-group-item i {
-        margin-right: 0;
-        font-size: 18px;
-    }
-    
-    .submenu {
-        display: none !important;
-    }
-    
-    .day-cell {
-        min-height: 45px !important;
-        max-height: 45px !important;
-        height: 45px !important;
-        font-size: 1.05rem !important;
+  .top-bar {
+    left: 70px;
+  }
+  
+  #page-content-wrapper {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+    margin-top: 60px;
+  }
+}
 
-    }
+@media (max-width: 640px) {
+  .top-bar {
+    left: 0;
+    right: 0;
+    height: 50px; /* Reduce height on mobile */
+  }
+  
+  #page-content-wrapper {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 50px; /* Adjust for reduced height */
+  }
+  
+  #wrapper.toggled .top-bar {
+    left: 220px;
+  }
+  
+  #wrapper.toggled #page-content-wrapper {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    margin-top: 50px;
+  }
+  
+  .calendar-container {
+    min-height: calc(100vh - 50px);
+  }
 }
 
 @media (max-width: 768px) {
@@ -760,6 +924,11 @@ aside.sidebar {
         width: 18px;
         height: 18px;
     }
+      .logout-btn {
+    margin-right: 10px; /* Reduce margin on mobile */
+    padding: 8px 12px;
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1252,4 +1421,507 @@ aside.sidebar {
 .time-slot-row.past-time-slot:not(.color-red):not(.color-green) .time-slot-number::after {
     content: "Past & not set";
     color: #dc3545;
+}
+/* Availability dropdown styling */
+.time-slot-availability {
+    padding-right: 25px !important; /* Make room for arrow */
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 100%;
+    min-width: 130px;
+}
+
+.time-slot-availability option {
+    padding: 8px 4px !important;
+    white-space: normal;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+/* Visual feedback for availability */
+.time-slot-row.color-green {
+    background-color: rgba(22, 163, 74, 0.05) !important;
+}
+
+.time-slot-row.color-red {
+    background-color: rgba(220, 38, 38, 0.05) !important;
+}
+/* Modal header adjustments to accommodate filter */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#logoutConfirmationModal .title-header {
+    align-items: center !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-top-left-radius: calc(0.3rem - 1px) !important;
+    border-top-right-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    padding: 1rem !important;
+}
+.modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: calc(var(--bs-modal-padding) - var(--bs-modal-footer-gap) * .5);
+    background-color: var(--bs-modal-footer-bg);
+    border-top: var(--bs-modal-footer-border-width) solid var(--bs-modal-footer-border-color);
+    border-bottom-right-radius: var(--bs-modal-inner-border-radius);
+    border-bottom-left-radius: var(--bs-modal-inner-border-radius);
+}
+#logoutConfirmationModal .modal-content {
+    background-color: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    display: block !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    width: 800px !important;
+}
+.modal {
+  z-index: 1055 !important;
+}
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+/* ============================= */
+/* 🔹 NOTIFICATION STYLES 🔹 */
+/* ============================= */
+.notification-container {
+    position: relative;
+    margin-right: 15px;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #333;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #f9f9f9;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 400px;
+    max-width: 90vw;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    display: none;
+    z-index: 9999;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block !important;
+    animation: slideIn 0.3s ease !important;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.notification-actions .btn-link {
+    padding: 2px 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    border: 1px solid  #666; 
+    border-radius: 4px;
+}
+
+.notification-actions .btn-link:hover {
+    color: #007bff;
+    border-color: #007bff;
+    text-decoration: none;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #007bff;
+}
+
+.notification-item.unread:hover {
+    background-color: #e6f2ff;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notification-time i {
+    font-size: 10px;
+}
+
+.notification-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.notification-actions-row .btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.notification-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+/* Scrollbar styling for notification list */
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        width: 320px;
+        right: -50px;
+    }
+    
+    .notification-item {
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: 280px;
+        right: -80px;
+    }
+    
+    .notification-container {
+        margin-right: 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Top bar: remove left space and set to full width */
+    .top-bar {
+        left: 0 !important;
+        width: 100% !important;
+        padding: 10px 15px;
+    }
+
+    /* Sidebar: hidden by default, fixed position, slides in when toggled */
+    #sidebar-wrapper {
+        transform: translateX(-100%);
+        width: 220px;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 1200;
+        position: fixed;
+        transition: transform 0.3s ease;
+    }
+
+    /* When sidebar is toggled, slide in */
+    #wrapper.toggled #sidebar-wrapper {
+        transform: translateX(0);
+    }
+
+    /* Page content: always full width, no margin */
+    #page-content-wrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* When sidebar is toggled, page content does not shift */
+    #wrapper.toggled #page-content-wrapper {
+        margin-left: 0 !important;
+    }
+
+    /* Ensure notification dropdown stays on screen */
+    .notification-dropdown {
+        right: 0 !important;
+        width: 320px;
+    }
+
+    /* Adjust logout button for mobile */
+    .logout-btn {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}
+
+/* Tablet adjustments (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .top-bar {
+        left: 220px;
+        width: calc(100% - 220px);
+    }
+    
+    #wrapper.toggled .top-bar {
+        left: 70px;
+        width: calc(100% - 70px);
+    }
+}
+
+/* Ensure top bar buttons stay visible */
+.notification-container, .logout-btn {
+    z-index: 1100;
+    position: relative;
+}
+
+/* Mobile overlay for sidebar */
+#sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1199;
+    display: none;
+}
+
+/* Ensure sidebar stays on top on mobile */
+@media (max-width: 768px) {
+    #sidebar-wrapper {
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Improve button visibility */
+    #menu-toggle {
+        z-index: 1201;
+        position: relative;
+    }
+    
+    /* Adjust calendar for mobile */
+    .calendar-container {
+        padding: 8px;
+    }
+    
+    .month-calendar {
+        max-width: 100% !important;
+        padding: 8px !important;
+    }
+    
+    /* Adjust view tabs for mobile */
+    .view-tabs-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .view-tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    .refresh-container {
+        align-self: flex-end;
+    }
+}
+
+/* Fix for mobile landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+    #sidebar-wrapper {
+        height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .calendar-container {
+        min-height: auto;
+    }
+}
+
+/* Ensure notification and logout stay accessible */
+.notification-container, .logout-btn {
+    flex-shrink: 0;
+}
+
+/* Fix for tablet view */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .top-bar {
+        padding: 10px 15px;
+    }
+    
+    .logout-btn {
+        margin-right: 10px;
+    }
+}
+
+/* Fix for very small screens */
+@media (max-width: 480px) {
+    .top-bar {
+        padding: 8px 10px;
+    }
+    
+    .notification-btn {
+        padding: 6px 8px;
+    }
+    
+    .logout-btn {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+    
+    /* Adjust notification dropdown for small screens */
+    .notification-dropdown {
+        width: 280px;
+        right: -60px !important;
+    }
 }

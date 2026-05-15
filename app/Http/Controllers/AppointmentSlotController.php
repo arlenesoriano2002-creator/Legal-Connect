@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\Appointment;
 use App\Models\AppointmentSlot;
 
 class AppointmentSlotController extends Controller
@@ -234,6 +236,7 @@ public function approve($id)
         \Log::info('Found appointment:', ['id' => $appointment->id, 'current_status' => $appointment->appointment_approval]);
         
         $appointment->appointment_approval = 'approved';
+        $appointment->processed_by = Auth::user()->name ?? 'System';
         $appointment->save();
         
         \Log::info('Appointment status updated to: ' . $appointment->appointment_approval);
@@ -270,6 +273,7 @@ public function deny($id)
         \Log::info('Found appointment:', ['id' => $appointment->id, 'current_status' => $appointment->appointment_approval]);
         
         $appointment->appointment_approval = 'denied';
+        $appointment->processed_by = Auth::user()->name ?? 'System';
         $appointment->save();
         
         \Log::info('Appointment status updated to: ' . $appointment->appointment_approval);

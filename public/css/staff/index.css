@@ -1,0 +1,156 @@
+body {
+    font-family: "Segoe UI", sans-serif;
+    color: #1f1f1f;
+    background:#e5e5e5;
+    
+}
+
+/* HEADER */
+.logbook-header {
+    border-bottom: 1px solid #e6e6e6;
+    padding: 20px 0;
+    background: #ffffff;
+}
+
+.logo-box {
+    width: 48px;
+    height: 48px;
+    background: #c79a1b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.logbook-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.logbook-header p {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+}
+
+.header-dots span {
+    width: 6px;
+    height: 6px;
+    background: #c79a1b;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 6px;
+}
+
+/* CONTENT */
+.logbook-container {
+    max-width: 850px;
+    margin: 20px auto;
+    text-align: center;
+
+}
+
+.logbook-container h2 {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 40px;
+}
+
+.form-card {
+    background: #fff;
+    padding: 40px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-radius: 4px;
+    text-align: left;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-label i {
+    color: #c79a1b;
+    margin-right: 6px;
+}
+
+.form-control,
+.form-select {
+    height: 48px;
+    border-radius: 2px;
+}
+
+.btn-submit {
+    background: linear-gradient(to right, #c79a1b, #a88215);
+    color: #fff;
+    border: none;
+    height: 52px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.btn-submit:hover {
+    opacity: 0.95;
+}
+
+/* CLOCK */
+.clock-box {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.clock-icon {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #c79a1b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c79a1b;
+    margin-right: 12px;
+}
+
+.clock-text h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.clock-text p {
+    margin: 0;
+    font-size: 12px;
+    color: #777;
+}
+
+/* Server-side toast/banner fallback */
+.server-toast {
+    position: fixed;
+    right: 25px;
+    top: 25px;
+    z-index: 99999;
+    padding: 12px 18px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 220ms ease-in-out;
+}
+.server-toast.show { transform: translateY(0); opacity: 1; }
+.server-toast.success { background: linear-gradient(90deg,#28a745,#1f8a3a); }
+.server-toast.error { background: linear-gradient(90deg,#dc3545,#b21f2d); }

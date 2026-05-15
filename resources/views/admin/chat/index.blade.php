@@ -38,7 +38,10 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
-               
+                 <a href="{{ route('admin.walkins') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.walkins') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clipboard" style="color: #cdd3df;"></i>
+                    <span>Walk-Ins logs</span>
+                </a>
                 <a href="#messagesSubmenu" 
                 class="list-group-item list-group-item-action {{ request()->is('email-chat') || request()->is('admin/system-chat') ? 'active' : '' }}"
                 data-bs-toggle="collapse" 
@@ -63,7 +66,7 @@
                 </div>
                 <a href="{{ url('/practice-areas') }}" class="list-group-item list-group-item-action {{ request()->is('practice-areas') ? 'active' : '' }}">
                     <i class="fa-solid fa-suitcase"></i>
-                    <span>Practice Areas</span>
+                    <span>Services</span>
                 </a>
 
                 <a href="#requestsSubmenu" class="list-group-item list-group-item-action {{ request()->is('clientstbl') || request()->is('adminAcceptedRequest') || request()->is('adminDeniedRequest') ? 'active' : '' }}" data-bs-toggle="collapse" aria-expanded="{{ request()->is('clientstbl') || request()->is('adminAcceptedRequest') || request()->is('adminDeniedRequest') ? 'true' : 'false' }}">
@@ -87,15 +90,20 @@
                 </div>
 
                 <a href="{{ url('/adminAccount') }}" class="list-group-item list-group-item-action {{ request()->is('adminAccount') ? 'active' : '' }}">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>All Staff Accounts</span>
+                </a>
+                <a href="{{ route('admin.account.settings') }}"
+                class="list-group-item list-group-item-action {{ request()->routeIs('admin.account.settings') ? 'active' : '' }}">
                     <i class="fas fa-user-cog"></i>
-                    <span>All Accounts</span>
+                    <span>Account Setting</span>
                 </a>
             </div>
         </div>
         
         <!-- Page Content -->
         <div id="page-content-wrapper">
-            <nav class="top-bar" role="banner">
+                        <nav class="top-bar" role="banner">
                 <div class="burger-menu">
                     <button class="btn btn-primary" id="menu-toggle">
                         <i class="fas fa-bars"></i>
@@ -103,6 +111,39 @@
                 </div>
                 
                 <div class="top-bar-spacer"></div>
+
+                <!-- Notification Dropdown -->
+                <div class="notification-container">
+                    <button class="notification-btn" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notificationBadge">0</span>
+                    </button>
+                    
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h4>Notifications</h4>
+                            <div class="notification-actions">
+                                <button class="btn btn-sm btn-link" id="markAllReadBtn">Mark all as read</button>
+                                <button class="btn btn-sm btn-link" onclick="refreshNotifications()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-list" id="notificationList">
+                            <div class="notification-empty">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No new notifications</p>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-footer">
+                            <a href="{{ route('clientstbl') }}" class="btn btn-sm btn-primary w-100">
+                                View All Pending Requests
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Log Out -->
                 <form id="logout-form" action="{{ route('custom.logout') }}" method="POST" style="display: none;">
@@ -114,8 +155,8 @@
             </nav>
 
             <!-- Main Chat Container -->
-            <div class="container-fluid mt-4">
-                <div class="row chat-container">
+            <div class="container-chat" style="height: calc(100vh - 60px);">
+                 <div class="row chat-container" style="height: 100% !important;">
                     <!-- Sidebar with Conversations -->
                     <div class="col-md-4 chat-sidebar">
                         <div class="chat-sidebar-inner">
@@ -197,6 +238,7 @@
                             <div>
                                 <h5 id="current-client-name">Select a conversation</h5>
                                 <small id="current-client-email"></small>
+                                <div id="current-client-status" class="current-client-status d-none"></div>
                             </div>
                             <div id="typing-indicator" class="typing-indicator" style="display: none;"></div>
                         </div>
@@ -209,15 +251,18 @@
                             </div>
                             <!-- Messages will be loaded here -->
                         </div>
-                                            
+                                                    
                         <!-- Message Input Area (Always visible) -->
-                         <div class="message-input-area">
+                        <div class="message-input-area">
                             <form id="message-form">
                                 @csrf
                                 <input type="hidden" id="conversation-id">
                                 <input type="hidden" id="client-id">
                                 
                                 <div class="input-group">
+                                    <button type="button" id="video-call-btn" class="btn btn-outline-secondary" onclick="initiateVideoCallAdmin()" title="Select an online client to start a video call" disabled>
+                                        <i class="fas fa-video"></i>
+                                    </button>
                                     <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('file-input').click()">
                                         <i class="fas fa-paperclip"></i>
                                     </button>
@@ -271,6 +316,8 @@
     <!-- Pusher for real-time -->
     <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
     <script src="{{ asset('js/system-chat.js') }}"></script>
+    <!-- WebRTC Call Manager -->
+    <script src="{{ asset('js/webrtc-call.js') }}"></script>
     <script>
 window.chatConfig = {
     routes: {
@@ -285,8 +332,303 @@ window.chatConfig = {
         downloadFile: "{{ route('admin.chat.messages.download', ':messageId') }}"
     },
     adminId: {{ Auth::id() }},
-    csrfToken: "{{ csrf_token() }}"
+    csrfToken: "{{ csrf_token() }}",
+    broadcastDriver: "{{ config('broadcasting.default') }}",
+    pusherKey: "{{ config('broadcasting.connections.pusher.key') }}",
+    pusherCluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}"
 };
 </script>
+    <script>
+        // Notification System
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNotificationSystem();
+        });
+
+        function initializeNotificationSystem() {
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            const markAllReadBtn = document.getElementById('markAllReadBtn');
+            
+            // Toggle notification dropdown
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('show');
+                    // If dropdown opened, immediately hide badge and mark as read (user viewed notifications)
+                    if (notificationDropdown.classList.contains('show')) {
+                        try {
+                            // Visual hide immediately
+                            updateNotificationBadge(0);
+                        } catch (err) {
+                            console.error('updateNotificationBadge not available', err);
+                        }
+                        try {
+                            // Mark all as read on server (non-blocking)
+                            markAllNotificationsAsRead();
+                        } catch (err) {
+                            console.error('markAllNotificationsAsRead not available', err);
+                        }
+                    }
+                });
+            }
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (notificationBtn && notificationDropdown &&
+                    !notificationBtn.contains(e.target) && 
+                    !notificationDropdown.contains(e.target)) {
+                    notificationDropdown.classList.remove('show');
+                }
+            });
+            
+            // Mark all as read
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    markAllNotificationsAsRead();
+                });
+            }
+            
+            // Initialize notification system
+            loadNotifications();
+            
+            // Real-time polling every 10 seconds
+            setInterval(() => {
+                if (!notificationDropdown.classList.contains('show')) {
+                    fetch('/admin/notifications/count')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const currentCount = parseInt(document.getElementById('notificationBadge').textContent);
+                                if (data.unread_count > currentCount) {
+                                    loadNotifications();
+                                }
+                                updateNotificationBadge(data.unread_count);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Real-time polling error:', error);
+                        });
+                }
+            }, 10000); // 10 seconds
+        }
+
+        function loadNotifications() {
+            const notificationList = document.getElementById('notificationList');
+            if (!notificationList) return;
+            
+            fetch('/admin/notifications/unread')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        updateNotificationBadge(data.unread_count);
+                        renderNotifications(data.notifications);
+                    } else {
+                        console.error('Notification error:', data.error || 'Unknown error');
+                        showFallbackNotifications();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    showFallbackNotifications();
+                });
+        }
+
+        function updateNotificationBadge(count) {
+            const notificationBadge = document.getElementById('notificationBadge');
+            if (notificationBadge) {
+                notificationBadge.textContent = count;
+                notificationBadge.style.display = count > 0 ? 'block' : 'none';
+            }
+        }
+
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return 'Recently';
+            }
+            
+            const seconds = Math.floor((now - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
+            
+            return 'Just now';
+        }
+
+        function renderNotifications(notifications) {
+            const notificationList = document.getElementById('notificationList');
+            if (!notificationList) return;
+            
+            if (!notifications || notifications.length === 0) {
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No new notifications</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            notifications.forEach(notification => {
+                const timeAgo = formatTimeAgo(notification.created_at);
+                const isUnread = !notification.is_read;
+                
+                // Determine icon and redirect URL based on notification type
+                let iconClass = 'fas fa-calendar-plus';
+                let redirectUrl = '{{ route("clientstbl") }}';
+                let seeMoreText = 'See More';
+                
+                if (notification.type === 'message') {
+                    switch (notification.icon_type) {
+                        case 'envelope':
+                            iconClass = 'fas fa-envelope';
+                            seeMoreText = 'View Email';
+                            break;
+                        case 'sms':
+                            iconClass = 'fas fa-sms';
+                            seeMoreText = 'View SMS';
+                            break;
+                        case 'comments':
+                            iconClass = 'fas fa-comments';
+                            seeMoreText = 'View Chat';
+                            break;
+                        default:
+                            iconClass = 'fas fa-comments';
+                            seeMoreText = 'View Message';
+                            break;
+                    }
+                    redirectUrl = notification.redirect_url;
+                }
+                
+                html += `
+                    <div class="notification-item ${isUnread ? 'unread' : ''}" 
+                         data-id="${notification.id}" 
+                         onclick="markNotificationAsRead('${notification.id}', this)">
+                        <div class="notification-icon">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">${escapeHtml(notification.title)}</div>
+                            <div class="notification-message">${escapeHtml(notification.message)}</div>
+                            <div class="notification-time">
+                                <i class="far fa-clock"></i>
+                                ${timeAgo}
+                            </div>
+                            <div class="notification-actions-row">
+                                <button class="btn btn-sm btn-outline-primary see-more-btn" 
+                                        onclick="event.stopPropagation(); window.location.href='${redirectUrl}'">
+                                    <i class="fas fa-external-link-alt"></i> ${seeMoreText}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            notificationList.innerHTML = html;
+        }
+
+        function showFallbackNotifications() {
+            const notificationList = document.getElementById('notificationList');
+            if (notificationList) {
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Unable to load notifications</p>
+                        <small>Please check your connection</small>
+                    </div>
+                `;
+            }
+        }
+
+        function markNotificationAsRead(id, element) {
+            fetch(`/admin/notifications/${id}/read`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (element) {
+                        element.classList.remove('unread');
+                    }
+                    updateNotificationBadge(data.unread_count);
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch('/admin/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove unread class from all items
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
+                        item.classList.remove('unread');
+                    });
+                    updateNotificationBadge(0);
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+
+        function refreshNotifications() {
+            loadNotifications();
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Logout confirmation function
+        function showLogoutConfirmation() {
+            const logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmationModal'));
+            logoutModal.show();
+        }
+    </script>
+@include('partials.notification-badge-visibility')
 </body>
 </html> 

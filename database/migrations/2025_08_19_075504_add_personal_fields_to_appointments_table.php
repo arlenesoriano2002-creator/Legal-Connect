@@ -12,13 +12,27 @@ return new class extends Migration
    public function up(): void
 {
     Schema::table('appointments', function (Blueprint $table) {
-        $table->string('fullname')->nullable();
-        $table->string('address')->nullable();
-        $table->string('phone')->nullable();
-        $table->string('email')->nullable();
-        $table->string('consulting')->nullable();
-        $table->date('selected_date')->nullable();
-        $table->string('selected_time')->nullable();
+        if (!Schema::hasColumn('appointments', 'fullname')) {
+            $table->string('fullname')->nullable();
+        }
+        if (!Schema::hasColumn('appointments', 'address')) {
+            $table->string('address')->nullable();
+        }
+        if (!Schema::hasColumn('appointments', 'phone')) {
+            $table->string('phone')->nullable();
+        }
+        if (!Schema::hasColumn('appointments', 'email')) {
+            $table->string('email')->nullable();
+        }
+        if (!Schema::hasColumn('appointments', 'consulting')) {
+            $table->string('consulting')->nullable();
+        }
+        if (!Schema::hasColumn('appointments', 'selected_date')) {
+            $table->date('selected_date')->nullable();
+        }
+        if (!Schema::hasColumn('appointments', 'selected_time')) {
+            $table->string('selected_time')->nullable();
+        }
     });
 }
 

@@ -10,9 +10,10 @@
      <link rel="icon" href="{{ asset('KG2025 (2).png') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('css/login.blade.css') }}">
     <title>Legal Connect - Online Legal Appointments</title>
-    <style>
 
-    </style>
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+
 </head>
 <body>
     <div class="login-container">
@@ -23,7 +24,7 @@
             <!-- Header -->
                 <div class="form-header">
                     <div class="form-logo">
-                         <img src="logo6.png" alt="LegalConnect logo" width="80" height="80" />
+                         <img class="imgLogo" src="logo6.png" alt="LegalConnect logo" width="80" height="80" />
                     </div>
                     <h1 class="form-title">LOGIN</h1>
                 </div>
@@ -41,7 +42,7 @@
                 @endif 
 
                 <!-- Login Form -->
-                <form method="POST" action="{{ route('login') }}">
+                <form method="POST" action="{{ route('login') }}" id="loginForm">
                      @csrf
                     
                     <!-- Email Input -->
@@ -86,72 +87,201 @@
             </div>
         </div>
     </div>
+  <script src="{{ asset('js/login.js') }}"></script>
+  <script>
+    window.loginSessionConflictConfig = {
+        sessionStateUrl: @json(route('login.session-state'))
+    };
+  </script>
+  
+  <!-- Per-Tab Auth Manager (automatically sends X-Tab-Token header on all requests) -->
+  <script src="{{ asset('js/per-tab-auth-manager.js') }}"></script>
+  
+  <!-- Session Conflict Prevention - Prevent multiple active sessions for same user -->
+  <script src="{{ asset('js/session-conflict-prevention.js') }}"></script>
 
-    <script>
-        // Prevent back and forward navigation, and disable shortcuts after logout or sensitive actions
-        function preventNavigation() {
-            // Push multiple states to prevent both back and forward navigation
-            history.pushState(null, null, location.href);
-            history.pushState(null, null, location.href);
-            history.pushState(null, null, location.href);
+  <!-- Session Timeout Manager - Auto-logout after inactivity -->
+  <script src="{{ asset('js/session-timeout-manager.js') }}"></script>
 
-            // Handle any navigation attempt (back or forward)
-            window.onpopstate = function(event) {
-                // Push state again to prevent navigation
-                history.pushState(null, null, location.href);
-                // Show alert for any navigation attempt
-                alert('Navigation is disabled for security reasons.');
-            };
-        }
-
-        // Disable browser navigation buttons, shortcuts, and undo/redo
-        function disableBrowserButtons() {
-            // Disable back button
-            history.pushState(null, null, location.href);
-            // Disable forward button by manipulating history
-            history.replaceState(null, null, location.href);
-
-            // Prevent context menu back/forward
-            document.addEventListener('contextmenu', function(e) {
-                // Allow context menu but prevent back/forward actions
-                setTimeout(() => {
-                    history.pushState(null, null, location.href);
-                }, 0);
+  <!-- History Control Manager - Prevent back navigation to protected pages -->
+  <script src="{{ asset('js/history-control-manager.js') }}"></script>
+  
+  <script>
+    // Initialize PerTabAuthManager after DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        PerTabAuthManager.init();
+        
+        // Check for existing sessions and warn user
+        SessionConflictPrevention.init();
+    });
+  </script>
+  
+  <!-- Tab Session Manager (same as welcome.blade.php) -->
+  <script>
+    const TabSessionManager = {
+        TAB_ID_KEY: 'legal_connect_tab_id',
+        TAB_TOKEN_KEY: 'legal_connect_tab_token',
+        TAB_EXPIRY_KEY: 'legal_connect_tab_expiry',
+        
+        init() {
+            let tabId = sessionStorage.getItem(this.TAB_ID_KEY);
+            if (!tabId) {
+                tabId = this.generateTabId();
+                sessionStorage.setItem(this.TAB_ID_KEY, tabId);
+                console.log('Generated new tab ID for login:', tabId);
+            }
+            this.setupFetchInterceptor();
+            this.setupBeforeUnloadHandler();
+        },
+        
+        generateTabId() {
+            return 'tab_' + 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = (Math.random() * 16) | 0;
+                const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                return v.toString(16);
             });
-
-            // Prevent keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Prevent Alt+Left (back), Alt+Right (forward), Ctrl+Left, Ctrl+Right
-                if ((e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) ||
-                    (e.ctrlKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'z' || e.key === 'y'))) {
-                    e.preventDefault();
-                    alert('Navigation and undo/redo are disabled for security reasons.');
-                    return false;
+        },
+        
+        setTabToken(tabToken, expiresAt) {
+            sessionStorage.setItem(this.TAB_TOKEN_KEY, tabToken);
+            sessionStorage.setItem(this.TAB_EXPIRY_KEY, expiresAt);
+            console.log('Stored per-tab token:', tabToken.substring(0, 10) + '...');
+        },
+        
+        getTabToken() {
+            return sessionStorage.getItem(this.TAB_TOKEN_KEY);
+        },
+        
+        getTabId() {
+            return sessionStorage.getItem(this.TAB_ID_KEY);
+        },
+        
+        isTokenExpired() {
+            const expiry = sessionStorage.getItem(this.TAB_EXPIRY_KEY);
+            if (!expiry) return true;
+            return new Date() > new Date(expiry);
+        },
+        
+        setupFetchInterceptor() {
+            const originalFetch = window.fetch;
+            const self = this;
+            
+            window.fetch = function(...args) {
+                let [resource, config] = args;
+                
+                if (typeof resource === 'string' && resource.startsWith('/')) {
+                    const tabToken = self.getTabToken();
+                    if (tabToken && !self.isTokenExpired()) {
+                        config = config || {};
+                        config.headers = config.headers || {};
+                        config.headers['X-Tab-Token'] = tabToken;
+                    }
+                }
+                
+                return originalFetch.apply(this, [resource, config]);
+            };
+        },
+        
+        setupBeforeUnloadHandler() {
+            const self = this;
+            window.addEventListener('beforeunload', function() {
+                const tabToken = self.getTabToken();
+                if (tabToken) {
+                    const data = new FormData();
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (csrfToken) {
+                        data.append('_token', csrfToken.content);
+                    }
+                    navigator.sendBeacon('/tab-session/logout', data);
                 }
             });
         }
+    };
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => TabSessionManager.init());
+  </script>
+  
+  <!-- Login Form Enhancement for Per-Tab Sessions -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.querySelector('form');
+        if (!loginForm) return;
+        
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.querySelector('input[name="email"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+            const tabId = TabSessionManager.getTabId();
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                            document.querySelector('input[name="_token"]')?.value;
+            
+            try {
+                if (typeof SessionConflictPrevention !== 'undefined') {
+                    await SessionConflictPrevention.checkForExistingSession(email);
+                }
 
-        // Call functions to disable navigation and shortcuts
-        document.addEventListener('DOMContentLoaded', function() {
-            preventNavigation();
-            disableBrowserButtons();
-        });
-
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeOpen = document.getElementById('eye-open');
-            const eyeClosed = document.getElementById('eye-closed');
-
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeOpen.style.display = 'none';
-                eyeClosed.style.display = 'block';
-            } else {
-                passwordInput.type = 'password';
-                eyeOpen.style.display = 'block';
-                eyeClosed.style.display = 'none';
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        tab_id: tabId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.tab_session) {
+                    // Store per-tab token
+                    TabSessionManager.setTabToken(
+                        data.tab_session.tab_token,
+                        data.tab_session.expires_at
+                    );
+                    
+                    // Record session for conflict prevention
+                    if (data.user && typeof PerTabAuthManager !== 'undefined') {
+                        PerTabAuthManager.recordSession(data.user);
+                        console.log('Session recorded for conflict prevention');
+                    }
+                    
+                    console.log('Login successful, tab token stored');
+                    
+                    // Redirect to appropriate page based on role
+                    window.location.href = data.redirect;
+                } else if (data.success && !data.tab_session) {
+                    // Fallback if no tab session data (regular form submission)
+                    
+                    // Record session for conflict prevention
+                    if (data.user && typeof PerTabAuthManager !== 'undefined') {
+                        PerTabAuthManager.recordSession(data.user);
+                        console.log('Session recorded for conflict prevention (fallback)');
+                    }
+                    
+                    window.location.href = data.redirect;
+                } else {
+                    // Show error
+                    const errorList = document.querySelector('.error-list');
+                    if (errorList) {
+                        errorList.innerHTML = `<ul><li>${data.message || 'Login failed'}</li></ul>`;
+                    } else {
+                        alert(data.message || 'Login failed');
+                    }
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                // Fallback to regular form submission in case of fetch error
+                loginForm.submit();
             }
-        }
-    </script>
+        });
+    });
+  </script>
+
 </body>
 </html>

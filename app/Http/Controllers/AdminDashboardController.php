@@ -6,19 +6,22 @@ use ZipArchive;
 use App\Models\Backup;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
+use Illuminate\Support\Facades\Cache;
 
 class AdminDashboardController extends Controller
 {
     public function index()
 {
-    // Get appointment counts
-    $totalAppointments = Appointment::count();
-    $pendingAppointments = Appointment::where('appointment_approval', 'pending')->count();
-    $approvedAppointments = Appointment::where('appointment_approval', 'approved')->count();
-    $deniedAppointments = Appointment::where('appointment_approval', 'denied')->count();
+    // Keep dashboard totals aligned with the visible status pages.
+    $pendingAppointments = $this->countAppointmentsByStatus('pending');
+    $approvedAppointments = $this->countAppointmentsByStatus('approved');
+    $deniedAppointments = $this->countAppointmentsByStatus('denied');
+    $totalAppointments = $pendingAppointments + $approvedAppointments + $deniedAppointments;
 
     // Recent Appointments
-    $recentAppointments = Appointment::orderBy('created_at', 'desc')->take(5)->get();
+    $recentAppointments = Cache::remember('recent_appointments', 300, function () {
+        return Appointment::orderBy('created_at', 'desc')->take(5)->get();
+    });
 
     // ✅ Fetch Backups for backup-manager.blade.php
     // Get backups and manually decrypt
@@ -92,6 +95,11 @@ public function refreshBackups()
     $html = $dom->saveHTML($container);
 
     return response()->json(['html' => $html]);
+}
+
+private function countAppointmentsByStatus(string $status): int
+{
+    return Appointment::whereRaw("LOWER(TRIM(appointment_approval)) = ?", [strtolower(trim($status))])->count();
 }
 
 }

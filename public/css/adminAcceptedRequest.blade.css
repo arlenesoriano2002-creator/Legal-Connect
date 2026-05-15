@@ -31,7 +31,7 @@ html, body {
 }
 
 .sidebar-heading {
-    padding: 20px 15px;
+    padding: 10px;
     background: rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 18px;
@@ -128,23 +128,79 @@ html, body {
     margin-left: 70px;
 }
 
-#wrapper.toggled .sidebar-heading,
-#wrapper.toggled .list-group-item span:not(.fa) {
-    display: none;
+/* Keep logo visible and properly centered in collapsed state */
+#wrapper.toggled .sidebar-heading {
+    padding: 20px 15px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 0 !important;
+    height: 60px; /* Fixed height for consistency */
+    overflow: hidden; /* Prevent any overflow */
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none !important;
+}
+
+#wrapper.toggled .sidebar-heading img {
+    display: block !important;
+    margin: 0 auto !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important; /* Prevent image from shrinking */
 }
 
 #wrapper.toggled .list-group-item {
     text-align: center;
-    padding: 15px 10px;
+    padding: 12px 10px !important; /* Slightly reduced padding */
+    border-left: 4px solid transparent;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px; /* Consistent height for all items */
+    position: relative; /* For positioning chevron */
 }
 
-#wrapper.toggled .list-group-item i {
-    margin-right: 0;
+/* Hide chevron-down icons when sidebar is collapsed */
+#wrapper.toggled .list-group-item .fa-chevron-down {
+    display: none !important;
+}
+
+/* Ensure the main icons remain visible and centered */
+#wrapper.toggled .list-group-item i:not(.fa-chevron-down) {
+    margin-right: 0 !important;
     font-size: 18px;
+    display: block !important;
+    width: 24px; /* Fixed width for consistent centering */
+    text-align: center;
+}
+
+#wrapper.toggled .list-group-item span:not(.fa) {
+    display: none !important;
 }
 
 #wrapper.toggled .submenu {
     display: none !important;
+}
+
+/* Ensure proper spacing for chevron in expanded state */
+.list-group-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.list-group-item .fa-chevron-down {
+    margin-left: auto; /* Push chevron to the right */
+    margin-right: 0;
+}
+.list-group-item.active {
+    background-color: #293846 !important;
+    color: white !important;
+    border-left: 4px solid #19aa8d !important;
 }
 
 /* Remove old sidebar styles */
@@ -278,43 +334,101 @@ main {
 }
 
 .table-container {
-  max-height: 500px;
-  overflow-y: auto;
-  overflow-x: auto;
-  border-radius: 12px;
-  background: #fff;
-  padding: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+    /* Add these to control table width */
+    max-width: 100%;
+    display: block;
 }
 
 table {
-  width: 100%;
-  border-spacing: 0;
-  border-collapse: separate;
-  border-radius: 16px;
-  overflow: hidden;
+    width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse; /* Change from separate to collapse for better control */
+    border-radius: 8px;
+    overflow: hidden;
+    table-layout: fixed; /* This helps control column widths */
 }
+/* Set specific column widths */
+th:nth-child(1), td:nth-child(1) { /* Fullname */
+    width: 15%;
+    min-width: 120px;
+    max-width: 200px;
+    word-wrap: break-word;
+}
+th:nth-child(2), td:nth-child(2) { /* Address */
+    width: 20%;
+    min-width: 150px;
+    max-width: 250px;
+    word-wrap: break-word;
+}
+
+th:nth-child(3), td:nth-child(3) { /* Phone */
+    width: 10%;
+    min-width: 100px;
+    max-width: 150px;
+}
+
+th:nth-child(4), td:nth-child(4) { /* Consulting */
+    width: 20%;
+    min-width: 150px;
+    max-width: 250px;
+    word-wrap: break-word;
+}
+
+th:nth-child(5), td:nth-child(5) { /* Branch Chosen */
+    width: 15%;
+    min-width: 120px;
+    max-width: 180px;
+    word-wrap: break-word;
+}
+
+th:nth-child(6), td:nth-child(6) { /* Status */
+    width: 10%;
+    min-width: 80px;
+    max-width: 120px;
+}
+
+th:nth-child(7), td:nth-child(7) { /* Action */
+    width: 10%;
+    min-width: 140px;
+    max-width: 180px;
+}
+
 thead{
   background-color: #969090 !important;
 }
 
 th, td {
-  padding: 12px 16px;
+  padding: 12px 13px;
   text-align: left;
   border-bottom: 1px solid #ddd;
   white-space: nowrap;
 }
 
+
 th {
-  background-color: #f5f5f5;
-  font-weight: 600;
-  color: #333;
-  text-transform: uppercase;
-  font-size: 14px;
-  letter-spacing: 0.5px;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
 
 tr:hover {
   background-color: #f9f9f9;
@@ -332,19 +446,25 @@ tr:hover {
 }
 
 .info-btn {
-  padding: 6px 12px;
-  font-size: 13px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  background-color: #2563eb;
-  color: #fff;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background-color: #2563eb;
+    color: #fff;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
 }
 
-.info-btn:hover {
-  background-color: #06a7e6;
+.info-btn i {
+    font-size: 11px;
 }
 
 .deny-btn {
@@ -436,20 +556,23 @@ tr:hover {
   color: #000;
 }
 
-/* === MINIMALIST MODAL DESIGN (WITH STYLED CLOSE BUTTON) === */
 
+
+/* === MINIMALIST MODAL DESIGN (WITH STYLED CLOSE BUTTON) === */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  display: flex;
+
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 1100;
   font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
+
+.modal.show {
+  display: flex;
 }
 
 /* ===== COMPACT MODAL DESIGN ===== */
@@ -457,16 +580,16 @@ tr:hover {
   background: #ffffff;
   border-radius: 10px;
   width: 90%;
-  max-width: 700px; /* Reduced from 900px */
+  max-width: 700px;
   display: flex;
   flex-direction: row;
-  gap: 20px; /* Reduced gap */
-  padding: 30px 25px; /* Reduced padding */
+  gap: 20px;
+  padding: 30px 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   animation: fadeIn 0.25s ease;
   position: relative;
-  max-height: 99vh; /* Limit height */
-
+  max-height: 99vh;
+  z-index: 1101; /* Ensure modal content is above backdrop */
 }
 
 /* Left Panel - Form Details */
@@ -791,11 +914,15 @@ tr:hover {
 
 /* Responsive adjustments for table */
 @media (max-width: 1200px) {
-  .table-container {
-    width: 100%;
-    padding: 15px;
-  }
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 1000px; /* Minimum width before horizontal scroll appears */
+    }
 }
+
 
 @media (max-width: 900px) {
   .table-container {
@@ -1004,11 +1131,569 @@ tr:hover {
 
 /* Responsive adjustments for confirmation modal */
 @media (max-width: 768px) {
-    .confirmation-details {
-        padding: 12px;
+    .table-container {
+        border-radius: 8px;
     }
     
-    .confirmation-message p {
-        font-size: 14px;
+    table {
+        min-width: 900px; /* Smaller minimum width on mobile */
+    }
+    
+    th, td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .info-btn {
+        padding: 5px 8px !important;
+        font-size: 11px !important;
+        min-width: 120px;
+    }
+}
+
+.modal-box{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: var(--bs-modal-color);
+    pointer-events: auto;
+    background-color: var(--bs-modal-bg);
+    background-clip: padding-box;
+    border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
+    border-radius: var(--bs-modal-border-radius);
+    outline: 0;
+
+}
+.modal-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--bs-modal-header-padding);
+    border-bottom: var(--bs-modal-header-border-width) solid var(--bs-modal-header-border-color);
+    border-top-left-radius: var(--bs-modal-inner-border-radius);
+    border-top-right-radius: var(--bs-modal-inner-border-radius);
+}
+/* Logout Modal Styles */
+.logout-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.logout-modal-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== BOOTSTRAP MODAL FIXES ===== */
+/* Remove conflicting styles from Bootstrap modals */
+#logoutConfirmationModal .modal-dialog {
+    margin: 1.75rem auto;
+    width: 800px !important;
+    width: auto;
+}
+
+#logoutConfirmationModal .modal-content {
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+    display: block !important;
+    flex-direction: column;
+    pointer-events: auto;
+    position: relative;
+    width: 100% !important;
+}
+
+#logoutConfirmationModal .modal-header {
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    border-top-left-radius: calc(0.3rem - 1px);
+    border-top-right-radius: calc(0.3rem - 1px);
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+#logoutConfirmationModal .modal-title {
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+#logoutConfirmationModal .modal-body {
+    flex: 1 1 auto;
+    padding: 1rem;
+    position: relative;
+}
+
+#logoutConfirmationModal .modal-footer {
+    align-items: center;
+    border-top: 1px solid #dee2e6;
+    border-bottom-right-radius: calc(0.3rem - 1px);
+    border-bottom-left-radius: calc(0.3rem - 1px);
+    display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    padding: 0.75rem;
+}
+
+#logoutConfirmationModal .modal-footer > * {
+    margin: 0.25rem;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop {
+    opacity: 0.5;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1040;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+}
+
+.modal-backdrop.fade {
+    opacity: 0;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}
+
+/* Ensure Bootstrap modal has proper z-index */
+.modal {
+  z-index: 1100 !important; /* Increased */
+}
+
+.modal-dialog {
+  z-index: 1105 !important; /* Increased */
+}
+
+.modal-content {
+  z-index: 1110 !important; /* Increased */
+}
+
+/* Remove your custom modal styles from affecting Bootstrap modals */
+.modal.fade:not(.custom-modal) .modal-content {
+    width: auto;
+    max-width: 100%;
+    display: block;
+    padding: 0;
+    gap: 0;
+    background: #fff;
+    border-radius: 0.3rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+}
+/* Ensure modal content is clickable */
+.modal-dialog,
+.modal-content,
+.modal-body,
+.modal-header,
+.modal-footer {
+  pointer-events: auto !important;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop {
+  pointer-events: none !important;
+}
+
+.modal-backdrop.show {
+  pointer-events: auto !important;
+}
+/* Fix for custom modals to not affect Bootstrap */
+#infoModal.modal,
+#deleteConfirmationModal.modal {
+  z-index: 1100 !important;
+}
+
+#infoModal .modal-content,
+#deleteConfirmationModal .modal-content {
+    background: #ffffff;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    padding: 30px 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.25s ease;
+    position: relative;
+    max-height: 99vh;
+    z-index: 1105 !important;
+}
+
+/* Add these to adminAcceptedRequest.blade.css */
+ #deleteConfirmationModal .modal-container {
+      background-color: #fff !important;
+      border: 1px solid rgba(0, 0, 0, 0.2) !important;
+      border-radius: 0.3rem !important;
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+      display: block !important;
+      flex-direction: column !important;
+      pointer-events: auto !important;
+      position: relative !important;
+      width: 1500px !important;
+      max-width: 500px !important;
+  }
+
+#deleteConfirmationModal .title-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 1rem !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+
+#deleteConfirmationModal .content-modal {
+    padding: 1rem;
+}
+
+#deleteConfirmationModal .modal-footer {
+    justify-content: flex-end !important;
+    padding: 0.75rem;
+    border-top: 1px solid #dee2e6;
+}
+/* Make sure Bootstrap modal doesn't get custom modal styles */
+
+/* Fix for Bootstrap modal aria-hidden conflict */
+.modal.fade {
+    display: none;
+}
+
+.modal.fade.show {
+    display: flex !important;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Remove conflicting styles from your custom modal */
+#logoutConfirmationModal.modal {
+    display: none;
+}
+
+#logoutConfirmationModal.modal.show {
+    display: flex !important;
+}
+
+/* Ensure proper z-index for Bootstrap modal */
+.modal-backdrop {
+    z-index: 1040;
+}
+
+.modal {
+    z-index: 1050;
+}
+
+/* Fix for focus trap */
+.modal.fade .modal-dialog {
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Make sure modal content is properly displayed */
+.modal-dialog {
+    margin: auto;
+    pointer-events: none;
+}
+
+.modal-content {
+    pointer-events: auto;
+}
+
+/* Fix for close button */
+.modal-header .btn-close {
+    padding: 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+}
+
+/* ============================= */
+/* 🔹 NOTIFICATION STYLES 🔹 */
+/* ============================= */
+.notification-container {
+    position: relative;
+    margin-right: 15px;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #333;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #f9f9f9;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 400px;
+    max-width: 90vw;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    display: none;
+    z-index: 9999;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.notification-actions .btn-link {
+    padding: 2px 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    border: 1px solid  #666; 
+    border-radius: 4px;
+}
+
+.notification-actions .btn-link:hover {
+    color: #007bff;
+    border-color: #007bff;
+    text-decoration: none;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #007bff;
+}
+
+.notification-item.unread:hover {
+    background-color: #e6f2ff;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notification-time i {
+    font-size: 10px;
+}
+
+.notification-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.notification-actions-row .btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.notification-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+/* Scrollbar styling for notification list */
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        width: 320px;
+        right: -50px;
+    }
+    
+    .notification-item {
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: 280px;
+        right: -80px;
+    }
+    
+    .notification-container {
+        margin-right: 8px;
     }
 }

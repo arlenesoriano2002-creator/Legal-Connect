@@ -35,9 +35,10 @@ class EmailSenderController extends Controller
     public function sendEmailFromChat(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'to_email' => 'required|email',
+            'to_email' => 'required|string',
             'subject' => 'required|string',
             'message' => 'required|string',
+            'attachments.*' => 'file'
         ]);
 
         if ($validator->fails()) {
@@ -50,49 +51,33 @@ class EmailSenderController extends Controller
         try {
             \Log::info("Sending email to: {$request->to_email}, Subject: {$request->subject}");
 
+            // Prepare attachments if any
+            $attachments = [];
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    if (!$file->isValid()) continue;
+                    $content = base64_encode(file_get_contents($file->getRealPath()));
+                    $attachments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'type' => $file->getClientMimeType(),
+                        'base64' => $content
+                    ];
+                }
+            }
+
             $result = $this->emailService->sendEmailReply(
                 $request->to_email,
                 $request->subject,
-                $request->message
+                $request->message,
+                $request->message, // use same as HTMLPart for now
+                $attachments
             );
 
             if ($result['success']) {
-                // Use current Manila time for consistent timestamps
-                $now = Carbon::now('Asia/Manila');
-                
-                // Check if the new columns exist
-                $columns = Schema::getColumnListing('chattbl');
-                
-                $insertData = [
-                    'sender_id' => auth()->id(),
-                    'sender_email' => auth()->user()->email,
-                    'sender_name' => auth()->user()->name,
-                    'receiver_email' => $request->to_email,
-                    'subject' => $request->subject,
-                    'message' => $request->message,
-                    'sender_role' => auth()->user()->role,
-                    'message_type' => 'outgoing',
-                    'created_at' => $now, // Use consistent Manila time
-                    'updated_at' => $now, // Use consistent Manila time
-                ];
-
-                // Check for duplicate before inserting
-                if ($this->checkForDuplicate($insertData)) {
-                    \Log::warning("Duplicate message detected, skipping insert");
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Duplicate message detected'
-                    ], 409);
-                }
-
-                // Store in database
-                DB::table('chattbl')->insert($insertData);
-
-                \Log::info("Email sent and saved to database successfully with Manila timestamp: {$now}");
-
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Email sent successfully'
+                    'message' => 'Email sent successfully',
+                    'response' => $result['response'] ?? null
                 ]);
             } else {
                 \Log::error("Email sending failed: " . ($result['error'] ?? 'Unknown error'));

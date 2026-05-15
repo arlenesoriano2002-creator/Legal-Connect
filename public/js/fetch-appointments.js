@@ -3,15 +3,529 @@ class FetchAppointments {
         this.appointments = [];
         this.filteredAppointments = [];
         this.currentStatus = 'all';
+        this.currentCategory = 'all';
+        this.currentCaseName = 'all';
+        // this.currentBranch = 'all';
         this.init();
     }
 
     init() {
-        this.bindEvents();
-        this.loadAppointments();
+    this.bindEvents();
+    this.loadCategories();
+    this.loadAppointments();
+    this.bindBackupLogsEvents(); // NEW
     }
 
+    bindBackupLogsEvents() {
+        // View Backup Logs button
+        const viewBackupLogsBtn = document.getElementById('viewBackupLogsBtn');
+        if (viewBackupLogsBtn) {
+            viewBackupLogsBtn.addEventListener('click', () => {
+                this.showBackupLogsModal();
+            });
+        }
+
+        // Handle tab changes
+        const backupLogsModal = document.getElementById('backupLogsModal');
+        if (backupLogsModal) {
+            backupLogsModal.addEventListener('shown.bs.modal', () => {
+                // Load backup logs when modal is shown
+                this.loadBackupLogs();
+            });
+
+            backupLogsModal.addEventListener('hidden.bs.modal', () => {
+                // Reset modal state when hidden
+                this.resetBackupLogsModal();
+            });
+        }
+
+        // Handle tab switching
+        const backupLogsTab = document.getElementById('backupLogsTab');
+        if (backupLogsTab) {
+            backupLogsTab.addEventListener('click', (e) => {
+                if (e.target.classList.contains('nav-link')) {
+                    // If switching to PDF or CSV tab without selecting a backup, show info message
+                    const targetId = e.target.getAttribute('data-bs-target');
+                    if (targetId === '#pdf-preview' || targetId === '#csv-preview') {
+                        const activeBackup = document.querySelector('.backup-log-item.active');
+                        if (!activeBackup) {
+                            e.preventDefault();
+                            this.showToast('Please select a backup from the Backup Logs tab first.', 'warning');
+                        }
+                    }
+                }
+            });
+        }
+    }
+    showBackupLogsModal() {
+    const modalElement = document.getElementById('backupLogsModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
+
+// NEW METHOD: Load backup logs via AJAX
+async loadBackupLogs() {
+    const container = document.getElementById('backupLogsContainer');
+    if (!container) return;
+
+    try {
+        // Show loading state
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading backup logs...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading backup logs...</p>
+            </div>
+        `;
+
+        // Use the existing route that works
+        const response = await fetch('/admin/get-backups', {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        });
+        
+        // Check if response is OK
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const backups = await response.json();
+
+        if (!backups || backups.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-folder-open fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No backup logs found.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Render backup logs
+        let html = '';
+        backups.forEach(backup => {
+            // Get decrypted filename if available
+            const fileName = backup.file_name || backup.decrypted_file_name || 'Unknown Backup';
+            const extension = fileName.split('.').pop().toLowerCase();
+            const date = new Date(backup.created_at).toLocaleString();
+            let typeClass = 'secondary';
+            let typeIcon = 'fa-file';
+            
+            switch(extension) {
+                case 'pdf':
+                    typeClass = 'pdf';
+                    typeIcon = 'fa-file-pdf';
+                    break;
+                case 'csv':
+                case 'xlsx':
+                    typeClass = 'csv';
+                    typeIcon = 'fa-file-excel';
+                    break;
+                case 'sql':
+                    typeClass = 'sql';
+                    typeIcon = 'fa-database';
+                    break;
+            }
+
+            html += `
+                <div class="backup-log-item" data-backup-id="${backup.id}" data-file-name="${fileName}" data-extension="${extension}">
+                    <div class="backup-log-info">
+                        <div class="backup-log-name">
+                            <i class="fas ${typeIcon} me-2"></i>
+                            ${fileName}
+                        </div>
+                        <div class="backup-log-details">
+                            <span class="backup-log-type ${typeClass}">${extension.toUpperCase()}</span>
+                            <span class="ms-3">${date}</span>
+                        </div>
+                    </div>
+                    <div class="backup-log-actions">
+                        <button class="backup-log-btn view" onclick="appointmentsManager.viewBackup(${backup.id}, '${extension}')">
+                            <i class="fas fa-eye me-1"></i> View
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+        // Add click event to backup log items
+        container.querySelectorAll('.backup-log-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Remove active class from all items
+                container.querySelectorAll('.backup-log-item').forEach(i => {
+                    i.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                item.classList.add('active');
+                
+                // Get backup details
+                const backupId = item.getAttribute('data-backup-id');
+                const fileName = item.getAttribute('data-file-name');
+                const extension = item.getAttribute('data-extension');
+                
+                // Store selected backup info
+                this.selectedBackup = { id: backupId, fileName, extension };
+            });
+        });
+
+    } catch (error) {
+        console.error('Error loading backup logs:', error);
+        container.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Failed to load backup logs. Please try again.
+            </div>
+        `;
+    }
+}
+// NEW METHOD: View backup (PDF or CSV)
+async viewBackup(backupId, extension) {
+    try {
+        if (extension === 'pdf') {
+            // Switch to PDF tab
+            const pdfTab = document.getElementById('pdf-preview-tab');
+            if (pdfTab) {
+                const tab = new bootstrap.Tab(pdfTab);
+                tab.show();
+                
+                // Load PDF in iframe - FIXED: Use the correct route with proper headers
+                const pdfFrame = document.getElementById('pdfPreviewFrame');
+                
+                // Clear previous content
+                pdfFrame.src = '';
+                
+                // Create a URL with inline parameter
+                const pdfUrl = `/backup/view/${backupId}?inline=true`;
+                console.log('Loading PDF from:', pdfUrl);
+                
+                // Set iframe source
+                pdfFrame.src = pdfUrl;
+                
+                // Add error handling
+                pdfFrame.onload = function() {
+                    console.log('PDF loaded successfully');
+                };
+                
+                pdfFrame.onerror = function() {
+                    console.error('Failed to load PDF');
+                    this.showToast('Failed to load PDF preview. The file might be corrupted or unavailable.', 'danger');
+                };
+            }
+        } else if (extension === 'csv' || extension === 'xlsx') {
+            // Switch to CSV tab
+            const csvTab = document.getElementById('csv-preview-tab');
+            if (csvTab) {
+                const tab = new bootstrap.Tab(csvTab);
+                tab.show();
+                
+                // Load CSV preview
+                await this.loadCsvPreview(backupId);
+            }
+        } else {
+            this.showToast('Preview not available for this file type.', 'warning');
+        }
+    } catch (error) {
+        console.error('Error viewing backup:', error);
+        this.showToast('Failed to load backup preview.', 'danger');
+    }
+}
+
+// NEW METHOD: Load CSV preview
+async loadCsvPreview(backupId) {
+    const tableHead = document.getElementById('csvPreviewTableHead');
+    const tableBody = document.getElementById('csvPreviewTableBody');
+    const pagination = document.getElementById('csvPagination');
+    const pageInfo = document.getElementById('csvPageInfo');
+    
+    if (!tableHead || !tableBody) return;
+
+    try {
+        // Show loading
+        tableHead.innerHTML = '';
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="100" class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Loading CSV data...
+                </td>
+            </tr>
+        `;
+        pagination.classList.add('d-none');
+
+        // Fetch CSV data
+        console.log('Fetching CSV data for backup:', backupId);
+        const response = await fetch(`/backup/view/${backupId}?format=json`);
+        
+        // Check if response is OK
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Get the response text first for debugging
+        const responseText = await response.text();
+        console.log('Raw response:', responseText.substring(0, 500));
+        
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (jsonError) {
+            console.error('JSON parse error:', jsonError);
+            console.error('Response text:', responseText);
+            throw new Error('Invalid JSON response from server');
+        }
+
+        if (!data || data.error) {
+            throw new Error(data?.error || 'Invalid CSV data');
+        }
+
+        if (!data.headers || !data.rows) {
+            throw new Error('Missing headers or rows in CSV data');
+        }
+
+        // Clear existing content
+        tableHead.innerHTML = '';
+        tableBody.innerHTML = '';
+
+        // Create headers
+        const headerRow = document.createElement('tr');
+        data.headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        tableHead.appendChild(headerRow);
+
+        // Create rows (limit to 100 for performance)
+        const rowsToShow = data.rows.slice(0, 100);
+        rowsToShow.forEach(row => {
+            const tr = document.createElement('tr');
+            data.headers.forEach(header => {
+                const td = document.createElement('td');
+                td.textContent = row[header] || '';
+                td.style.whiteSpace = 'nowrap';
+                td.style.overflow = 'hidden';
+                td.style.textOverflow = 'ellipsis';
+                td.style.maxWidth = '200px';
+                tr.appendChild(td);
+            });
+            tableBody.appendChild(tr);
+        });
+
+        // Show pagination if there are more rows
+        if (data.rows.length > 100) {
+            pageInfo.textContent = `Showing 1-100 of ${data.rows.length} rows`;
+            pagination.classList.remove('d-none');
+            
+            // Handle pagination
+            this.csvData = data;
+            this.currentCsvPage = 1;
+            this.rowsPerPage = 100;
+            
+            // Update pagination event listeners
+            this.bindCsvPagination();
+        }
+
+    } catch (error) {
+        console.error('Error loading CSV preview:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="100" class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to load CSV preview: ${error.message}
+                </td>
+            </tr>
+        `;
+        
+        // Show a debug button
+        const debugBtn = document.createElement('button');
+        debugBtn.className = 'btn btn-sm btn-outline-primary mt-2';
+        debugBtn.innerHTML = '<i class="fas fa-bug me-1"></i>Debug CSV Parsing';
+        debugBtn.onclick = () => window.open(`/test-csv-parse/${backupId}`, '_blank');
+        
+        const td = document.createElement('td');
+        td.colSpan = 100;
+        td.className = 'text-center';
+        td.appendChild(debugBtn);
+        
+        const tr = document.createElement('tr');
+        tr.appendChild(td);
+        tableBody.appendChild(tr);
+    }
+}
+// NEW METHOD: Bind CSV pagination events
+bindCsvPagination() {
+    const prevBtn = document.querySelector('[data-page="prev"]');
+    const nextBtn = document.querySelector('[data-page="next"]');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (this.currentCsvPage > 1) {
+                this.currentCsvPage--;
+                this.updateCsvPage();
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const totalPages = Math.ceil(this.csvData.rows.length / this.rowsPerPage);
+            if (this.currentCsvPage < totalPages) {
+                this.currentCsvPage++;
+                this.updateCsvPage();
+            }
+        });
+    }
+}
+
+// NEW METHOD: Update CSV page
+updateCsvPage() {
+    if (!this.csvData) return;
+    
+    const tableBody = document.getElementById('csvPreviewTableBody');
+    const pageInfo = document.getElementById('csvPageInfo');
+    
+    const startIndex = (this.currentCsvPage - 1) * this.rowsPerPage;
+    const endIndex = startIndex + this.rowsPerPage;
+    const rowsToShow = this.csvData.rows.slice(startIndex, endIndex);
+    
+    // Clear and update table
+    tableBody.innerHTML = '';
+    rowsToShow.forEach(row => {
+        const tr = document.createElement('tr');
+        this.csvData.headers.forEach(header => {
+            const td = document.createElement('td');
+            td.textContent = row[header] || '';
+            td.style.whiteSpace = 'nowrap';
+            td.style.overflow = 'hidden';
+            td.style.textOverflow = 'ellipsis';
+            td.style.maxWidth = '200px';
+            tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+    });
+    
+    // Update page info
+    pageInfo.textContent = `Showing ${startIndex + 1}-${Math.min(endIndex, this.csvData.rows.length)} of ${this.csvData.rows.length} rows`;
+}
+
+// NEW METHOD: Reset backup logs modal
+resetBackupLogsModal() {
+    // Clear selected backup
+    this.selectedBackup = null;
+    
+    // Clear active classes
+    const container = document.getElementById('backupLogsContainer');
+    if (container) {
+        container.querySelectorAll('.backup-log-item').forEach(item => {
+            item.classList.remove('active');
+        });
+    }
+    
+    // Clear previews
+    const pdfFrame = document.getElementById('pdfPreviewFrame');
+    if (pdfFrame) pdfFrame.src = '';
+    
+    const tableHead = document.getElementById('csvPreviewTableHead');
+    const tableBody = document.getElementById('csvPreviewTableBody');
+    if (tableHead) tableHead.innerHTML = '';
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="100" class="text-center py-4 text-muted">Select a CSV backup to preview</td></tr>';
+    
+    const pagination = document.getElementById('csvPagination');
+    if (pagination) pagination.classList.add('d-none');
+    
+    // Switch back to first tab
+    const firstTab = document.getElementById('backup-list-tab');
+    if (firstTab) {
+        const tab = new bootstrap.Tab(firstTab);
+        tab.show();
+    }
+}
+
+// NEW METHOD: Show toast message
+showToast(message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast align-items-center text-bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Show toast
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+    
+    // Remove toast after hiding
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
     bindEvents() {
+        // Category filter
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', (e) => {
+                this.currentCategory = e.target.value;
+                // Reload case name options when category changes
+                this.loadCaseNames(this.currentCategory);
+                // Reset selected case name when category changes
+                const caseSelect = document.getElementById('caseNameFilter');
+                if (caseSelect) {
+                    caseSelect.value = 'all';
+                    this.currentCaseName = 'all';
+                }
+                this.filterAppointments();
+            });
+        }
+        // Branch filter
+        // const branchFilter = document.getElementById('branchFilter');
+        // if (branchFilter) {
+        //     branchFilter.addEventListener('change', (e) => {
+        //         this.currentBranch = e.target.value;
+        //         this.filterAppointments();
+        //     });
+        // }
+        // Case name filter
+        const caseNameFilter = document.getElementById('caseNameFilter');
+        if (caseNameFilter) {
+            caseNameFilter.addEventListener('change', (e) => {
+                this.currentCaseName = e.target.value;
+                this.filterAppointments();
+            });
+        }
         // Status filter
         const statusFilter = document.getElementById('statusFilter');
         if (statusFilter) {
@@ -66,10 +580,58 @@ class FetchAppointments {
             if (e.key === 'Escape') this.closeModal();
         });
     }
-    // NEW METHOD: Save Excel backup
+
+    // Load categories from server and populate the category filter
+    async loadCategories() {
+        const select = document.getElementById('categoryFilter');
+        if (!select) return;
+
+        try {
+            const res = await fetch('/api/appointment-categories', {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error('Failed to load categories');
+            const data = await res.json();
+            const categories = data.categories || [];
+
+            // Clear existing options except the default
+            select.innerHTML = '<option value="all">All Categories</option>' +
+                categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            // After loading categories, also load case names (unfiltered)
+            this.loadCaseNames();
+        } catch (err) {
+            console.error('Error loading categories:', err);
+        }
+    }
+
+    // Load case names from server and populate caseNameFilter; optional category param
+    async loadCaseNames(category = 'all') {
+        const select = document.getElementById('caseNameFilter');
+        if (!select) return;
+
+        try {
+            const url = category && category !== 'all' ? `/api/appointment-case-names?category=${encodeURIComponent(category)}` : '/api/appointment-case-names';
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Failed to load case names');
+            const data = await res.json();
+            const caseNames = data.case_names || [];
+
+            select.innerHTML = '<option value="all">All Case Names</option>' +
+                caseNames.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        } catch (err) {
+            console.error('Error loading case names:', err);
+        }
+    }
+    // NEW METHOD: Save Excel backup with filtered data
     async saveExcelBackup() {
         const saveExcelBtn = document.getElementById('saveExcelBtn');
         const originalText = saveExcelBtn.innerHTML;
+        
+        // Check if there are filtered appointments to export
+        if (!this.filteredAppointments || this.filteredAppointments.length === 0) {
+            this.showSuccessToast('No appointments to export. Please adjust your filters.', 'warning');
+            return;
+        }
         
         try {
             // Show loading state
@@ -83,14 +645,21 @@ class FetchAppointments {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
                 body: JSON.stringify({
-                    filter: this.currentStatus
+                    // Send the filtered appointments array and filter info for context
+                    appointments: this.filteredAppointments,
+                    filters: {
+                        status: this.currentStatus,
+                        category: this.currentCategory,
+                        caseName: this.currentCaseName,
+                        // branch: this.currentBranch
+                    }
                 })
             });
 
             const result = await response.json();
 
             if (response.ok && result.success) {
-                this.showSuccessToast('Excel file saved successfully!');
+                this.showSuccessToast(`Excel file saved successfully! (${this.filteredAppointments.length} records)`);
             } else {
                 throw new Error(result.message || 'Failed to save Excel file');
             }
@@ -103,10 +672,16 @@ class FetchAppointments {
             saveExcelBtn.disabled = false;
         }
     }
-// Updated method: Save PDF backup (renamed from saveBackup)
+// Updated method: Save PDF backup with filtered data
 async savePdfBackup() {
     const saveBackupBtn = document.getElementById('saveBackupBtn');
     const originalText = saveBackupBtn.innerHTML;
+    
+    // Check if there are filtered appointments to export
+    if (!this.filteredAppointments || this.filteredAppointments.length === 0) {
+        this.showSuccessToast('No appointments to export. Please adjust your filters.', 'warning');
+        return;
+    }
     
     try {
         // Show loading state
@@ -120,14 +695,21 @@ async savePdfBackup() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
-                filter: this.currentStatus
+                // Send the filtered appointments array and filter info for context
+                appointments: this.filteredAppointments,
+                filters: {
+                    status: this.currentStatus,
+                    category: this.currentCategory,
+                    caseName: this.currentCaseName,
+                    // branch: this.currentBranch
+                }
             })
         });
 
         const result = await response.json();
 
         if (response.ok && result.success) {
-            this.showSuccessToast('PDF file saved successfully!');
+            this.showSuccessToast(`PDF file saved successfully! (${this.filteredAppointments.length} records)`);
         } else {
             throw new Error(result.message || 'Failed to save PDF file');
         }
@@ -142,14 +724,26 @@ async savePdfBackup() {
 }
 
 
-    // NEW METHOD: Show success toast
-    showSuccessToast(message = 'Backup saved successfully!') {
+    // NEW METHOD: Show success/warning toast
+    showSuccessToast(message = 'Backup saved successfully!', type = 'success') {
     const toastElement = document.getElementById('successToast');
     if (toastElement) {
         // Update toast message
         const toastBody = toastElement.querySelector('.toast-body');
         if (toastBody) {
             toastBody.textContent = message;
+        }
+        
+        // Update toast header color based on type
+        const toastHeader = toastElement.querySelector('.toast-header');
+        if (toastHeader) {
+            if (type === 'warning') {
+                toastHeader.className = 'toast-header bg-warning text-dark';
+            } else if (type === 'danger') {
+                toastHeader.className = 'toast-header bg-danger text-white';
+            } else {
+                toastHeader.className = 'toast-header bg-success text-white';
+            }
         }
         
         const toast = new bootstrap.Toast(toastElement);
@@ -171,6 +765,25 @@ async savePdfBackup() {
         if (searchInput) {
             searchInput.value = '';
         }
+
+        // Reset category and case name filters
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter) {
+            categoryFilter.value = 'all';
+            this.currentCategory = 'all';
+        }
+
+        const caseNameFilter = document.getElementById('caseNameFilter');
+        if (caseNameFilter) {
+            caseNameFilter.value = 'all';
+            this.currentCaseName = 'all';
+        }
+
+        // const branchFilter = document.getElementById('branchFilter');
+        // if (branchFilter) {
+        //     branchFilter.value = 'all';
+        //     this.currentBranch = 'all';
+        // }
 
         // Reset button states if they were disabled
         const saveExcelBtn = document.getElementById('saveExcelBtn');
@@ -216,6 +829,12 @@ async savePdfBackup() {
         // Filter by status
         const matchesStatus = this.currentStatus === 'all' || 
                             appointment.appointment_approval === this.currentStatus;
+        // Filter by category
+        const matchesCategory = !this.currentCategory || this.currentCategory === 'all' || (appointment.category === this.currentCategory);
+        // Filter by case name
+        const matchesCaseName = !this.currentCaseName || this.currentCaseName === 'all' || (appointment.case_name === this.currentCaseName);
+        // Filter by branch
+        // const matchesBranch = !this.currentBranch || this.currentBranch === 'all' || (appointment.selected_branch === this.currentBranch);
         
         // Filter by search term - UPDATED to include date and time
         const matchesSearch = !searchTerm || 
@@ -227,7 +846,7 @@ async savePdfBackup() {
             appointment.selected_time?.toLowerCase().includes(searchTerm) ||
             appointment.appointment_approval?.toLowerCase().includes(searchTerm);
         
-        return matchesStatus && matchesSearch;
+        return matchesStatus && matchesCategory && matchesCaseName /* && matchesBranch */ && matchesSearch;
     });
 
     this.renderTable();
@@ -267,12 +886,14 @@ async savePdfBackup() {
                     <td>${appointment.email || 'N/A'}</td>
                     <td>${appointment.category || 'N/A'}</td>
                     <td>${appointment.case_name || 'N/A'}</td>
+                    <!--<td>${appointment.selected_branch || 'N/A'}</td>-->
                     <td>${dateTime}</td>
                     <td>
                         <span class="status-text">
                             ${statusText}
                         </span>
                     </td>
+                    <td>${appointment.processed_by || appointment.approved_by || 'N/A'}</td>
                     <td>${createdDate}</td>
                     <td>
                         <button onclick="appointmentsManager.viewDetails(${appointment.id})" class="view-btn">
@@ -351,7 +972,11 @@ showModal(appointment) {
                     <label class="form-label">Case Name</label>
                     <p class="text-gray-900">${appointment.case_name || 'N/A'}</p>
                 </div>
-                
+                <!-- <div class="mb-3">
+                    <label class="form-label">Selected Branch</label>
+                    <p class="text-gray-900">${appointment.selected_branch || 'N/A'}</p>
+                </div> -->
+
                 <!-- FIXED: Use selected_date and selected_time -->
                 <div class="mb-3">
                     <label class="form-label">Selected Date</label>
@@ -541,9 +1166,83 @@ getStatusText(status) {
     if (!status) return 'Pending';
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 }
+
+// Add these methods to the FetchAppointments class
+showPdfLoading() {
+    const pdfLoading = document.getElementById('pdfLoading');
+    const pdfError = document.getElementById('pdfError');
+    if (pdfLoading) pdfLoading.classList.remove('d-none');
+    if (pdfError) pdfError.classList.add('d-none');
+}
+
+showPdfError(message) {
+    const pdfLoading = document.getElementById('pdfLoading');
+    const pdfError = document.getElementById('pdfError');
+    const pdfErrorMessage = document.getElementById('pdfErrorMessage');
+    
+    if (pdfLoading) pdfLoading.classList.add('d-none');
+    if (pdfError && pdfErrorMessage) {
+        pdfErrorMessage.textContent = message;
+        pdfError.classList.remove('d-none');
+    }
+}
+
+// Update the viewBackup method to use these
+async viewBackup(backupId, extension) {
+    try {
+        if (extension === 'pdf') {
+            // Switch to PDF tab
+            const pdfTab = document.getElementById('pdf-preview-tab');
+            if (pdfTab) {
+                const tab = new bootstrap.Tab(pdfTab);
+                tab.show();
+                
+                // Show loading state
+                this.showPdfLoading();
+                
+                // Load PDF in iframe
+                const pdfFrame = document.getElementById('pdfPreviewFrame');
+                
+                // Clear previous content
+                pdfFrame.src = '';
+                
+                // Create URL with inline parameter
+                const pdfUrl = `/backup/view/${backupId}?inline=true`;
+                
+                // Add timestamp to prevent caching issues
+                const timestamp = new Date().getTime();
+                const finalUrl = `${pdfUrl}&_=${timestamp}`;
+                
+                console.log('Loading PDF from:', finalUrl);
+                
+                // Set iframe source
+                setTimeout(() => {
+                    pdfFrame.src = finalUrl;
+                }, 100);
+            }
+        } else if (extension === 'csv' || extension === 'xlsx') {
+            // Switch to CSV tab
+            const csvTab = document.getElementById('csv-preview-tab');
+            if (csvTab) {
+                const tab = new bootstrap.Tab(csvTab);
+                tab.show();
+                
+                // Load CSV preview
+                await this.loadCsvPreview(backupId);
+            }
+        } else {
+            this.showToast('Preview not available for this file type.', 'warning');
+        }
+    } catch (error) {
+        console.error('Error viewing backup:', error);
+        this.showPdfError('Failed to load backup preview: ' + error.message);
+        this.showToast('Failed to load backup preview.', 'danger');
+    }
+}
 }
 
 // Initialize the appointments manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     window.appointmentsManager = new FetchAppointments();
 });
+

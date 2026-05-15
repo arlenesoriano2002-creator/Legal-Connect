@@ -1,0 +1,324 @@
+/* staff-calendar.css */
+.calendar-container {
+    padding: 20px;
+    background: #f8f9fa;
+    min-height: calc(100vh - 80px);
+}
+
+.view-tabs-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.view-tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.view-tab {
+    padding: 8px 20px;
+    background: #e9ecef;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.view-tab.active {
+    background: #19aa8d;
+    color: white;
+}
+
+.refresh-container {
+    display: flex;
+    align-items: center;
+}
+
+.refresh-btn-tabs {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+}
+
+.refresh-btn-tabs:hover {
+    background: #0056b3;
+}
+
+.refresh-btn-tabs:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.view-content {
+    height: calc(100vh - 200px); /* top-bar + tabs + padding */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.month-calendar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+.calendar-header h3 {
+    margin: 0;
+    font-weight: 600;
+    color: #2f4050;
+}
+
+.nav-btn {
+    background: #19aa8d;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover {
+    background: #13866f;
+    transform: scale(1.05);
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 10px 0;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.weekdays div {
+    padding: 5px;
+}
+
+
+.days-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr); /* ALWAYS 6 rows */
+    gap: 6px;
+    overflow: hidden;
+}
+
+
+.staff-day-cell {
+    padding: clamp(4px, 0.8vw, 8px);
+    font-size: clamp(11px, 1.1vw, 14px);
+    min-height: unset !important;
+    aspect-ratio: unset;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 10px;
+    height: 55px;
+}
+
+
+.staff-day-cell:hover {
+    border-color: #19aa8d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.staff-day-cell.staff-past-date {
+    background: #f8f9fa !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+
+    border-radius: 10px !important;
+}
+.staff-day-cell.staff-past-date {
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.staff-day-cell.staff-past-date:hover {
+    transform: none !important;
+    border-color: #e9ecef !important;
+    box-shadow: none !important;
+    border: 1px solid black !important;
+    border-radius: 10px !important;
+}
+
+
+.staff-day-cell.staff-other-month {
+    color: #adb5bd;
+    background: #f9fafb;
+}
+
+.staff-day-cell.staff-today {
+    border: 3px solid #000000 !important;
+    position: relative;
+}
+
+.staff-day-cell.staff-today::after {
+    content: 'Today';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #000000;
+    color: white;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* Color Classes */
+.staff-day-cell.color-red {
+    background: #dc2626 !important;
+    color: white !important;
+    border-color: #b91c1c !important;
+}
+
+.staff-day-cell.color-orange {
+    background: #ea580c !important;
+    color: white !important;
+    border-color: #c2410c !important;
+}
+
+.staff-day-cell.color-green {
+    background: #16a34a !important;
+    color: white !important;
+    border-color: #15803d !important;
+}
+
+/* Status Indicator */
+.staff-status-indicator {
+    height: 4px;
+    margin-top: auto;
+}
+
+.staff-status-indicator.red { background: #dc2626; }
+.staff-status-indicator.orange { background: #ea580c; }
+.staff-status-indicator.green { background: #16a34a; }
+
+/* Day Number */
+.day-number {
+    font-size: clamp(12px, 1.3vw, 16px);
+}
+
+
+/* Modal Styles */
+.modal-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.modal-section h6 {
+    color: #2f4050;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-color-option {
+    cursor: pointer;
+    padding: 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.modal-color-option:hover {
+    border-color: #adb5bd;
+    transform: translateY(-2px);
+}
+
+.modal-color-option.selected {
+    border-color: #19aa8d;
+    background: #f0f9ff;
+}
+
+.time-slot-color-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.color-red { background: #dc2626; }
+.color-orange { background: #ea580c; }
+.color-green { background: #16a34a; }
+
+.time-slots-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .staff-day-cell {
+        min-height: 60px;
+        padding: 5px;
+        font-size: 14px;
+    }
+    
+    .calendar-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .view-tabs-container {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .view-tabs {
+        justify-content: center;
+    }
+}

@@ -27,8 +27,8 @@ body {
 }
 
 .header {
-    background-color: rgba(225, 201, 25, 0.844);
-    color: rgb(0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.844);
+    color: rgb(255, 255, 255);
     padding: 25px;
     text-align: center;
     position: relative;

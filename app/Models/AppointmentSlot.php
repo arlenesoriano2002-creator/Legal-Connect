@@ -11,9 +11,18 @@ class AppointmentSlot extends Model
 
     protected $fillable = [
         'date',
-        'time',
-        'available_slots',
+        'time_range',
+        'capacity_remaining',
+        'law_office_id',
     ];
 
-    // Add any relationships or custom methods you need
+    public function lawOffice()
+    {
+        return $this->belongsTo(LawOffice::class);
+    }
+
+    public function scopeForOffice($query, $officeId)
+    {
+        return $query->where('law_office_id', $officeId);
+    }
 }

@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Admin\SmsChatController;
 
 class ForgotPasswordController extends Controller
 {
+    private const SESSION_EMAIL_KEY = 'password_reset_email';
+    private const SESSION_VERIFIED_KEY = 'password_reset_verified';
+
     // Show email input form
     public function showEmailForm()
     {
@@ -20,7 +24,7 @@ class ForgotPasswordController extends Controller
     public function sendOtp(Request $request)
     {
         try {
-            $request->validate([
+            $validated = $request->validate([
                 'email' => 'required|email|exists:users,email'
             ]);
 
@@ -28,7 +32,7 @@ class ForgotPasswordController extends Controller
             $otp = rand(1000, 9999);
 
             // Find user and update OTP
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $validated['email'])->first();
             
             if (!$user) {
                 return back()->withErrors(['email' => 'User not found!']);
@@ -38,12 +42,28 @@ class ForgotPasswordController extends Controller
             $user->is_verified = 0;
             $user->save();
 
-            // Send OTP via email
-            $this->sendOtpEmail($user->email, $otp);
+            // Keep reset state in the session before any external delivery calls.
+            session()->put([
+                self::SESSION_EMAIL_KEY => $user->email,
+                self::SESSION_VERIFIED_KEY => false,
+                'email' => $user->email,
+            ]);
+            session()->save();
+
+            $emailSent = $this->sendOtpEmail($user->email, $otp);
+            $smsSent = $this->sendOtpSms($user, $otp);
+
+            if (!$emailSent) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['email' => 'Unable to send the verification code by email. Please verify the SMTP settings and try again.']);
+            }
 
             return redirect()->route('password.otp')->with([
-                'email' => $request->email, 
-                'success' => 'The Code was sent to your email check it!'
+                'email' => $user->email,
+                'success' => $smsSent
+                    ? 'The verification code was sent to your email and phone.'
+                    : 'The verification code was sent to your email.'
             ]);
 
         } catch (\Exception $e) {
@@ -55,7 +75,7 @@ class ForgotPasswordController extends Controller
     // Show OTP verification form
     public function showOtpForm()
     {
-        if (!session('email')) {
+        if (!$this->getPasswordResetEmail()) {
             return redirect()->route('password.request');
         }
         
@@ -67,11 +87,17 @@ class ForgotPasswordController extends Controller
     {
         try {
             $request->validate([
-                'email' => 'required|email',
                 'otp' => 'required|digits:4'
             ]);
 
-            $user = User::where('email', $request->email)
+            $email = $request->input('email') ?: $this->getPasswordResetEmail();
+
+            if (!$email) {
+                return redirect()->route('password.request')
+                    ->withErrors(['email' => 'Please start the password reset process again.']);
+            }
+
+            $user = User::where('email', $email)
                         ->where('email_otp', $request->otp)
                         ->first();
 
@@ -80,8 +106,16 @@ class ForgotPasswordController extends Controller
                 $user->email_otp = null; // Clear OTP after verification
                 $user->save();
 
+                session()->put([
+                    self::SESSION_EMAIL_KEY => $email,
+                    self::SESSION_VERIFIED_KEY => true,
+                    'email' => $email,
+                ]);
+                session()->save();
+
                 return redirect()->route('password.reset')->with([
-                    'email' => $request->email, 
+                    'email' => $email,
+                    'verified' => true,
                     'success' => 'The code was verified successfully!'
                 ]);
             }
@@ -97,8 +131,13 @@ class ForgotPasswordController extends Controller
     // Show password reset form
     public function showResetForm()
     {
-        if (!session('email')) {
+        if (!$this->getPasswordResetEmail()) {
             return redirect()->route('password.request');
+        }
+
+        if (!session(self::SESSION_VERIFIED_KEY)) {
+            return redirect()->route('password.otp')
+                ->withErrors(['otp' => 'Please verify the code before resetting your password.']);
         }
         
         return view('forgot-password.reset');
@@ -109,11 +148,17 @@ class ForgotPasswordController extends Controller
     {
         try {
             $request->validate([
-                'email' => 'required|email',
                 'password' => 'required|min:8|confirmed'
             ]);
 
-            $user = User::where('email', $request->email)
+            $email = $request->input('email') ?: $this->getPasswordResetEmail();
+
+            if (!$email) {
+                return redirect()->route('password.request')
+                    ->withErrors(['email' => 'Please start the password reset process again.']);
+            }
+
+            $user = User::where('email', $email)
                         ->where('is_verified', 1)
                         ->first();
 
@@ -121,6 +166,12 @@ class ForgotPasswordController extends Controller
                 $user->password = Hash::make($request->password);
                 $user->is_verified = 0; // Reset verification status
                 $user->save();
+
+                session()->forget([
+                    self::SESSION_EMAIL_KEY,
+                    self::SESSION_VERIFIED_KEY,
+                    'email',
+                ]);
 
                 return redirect()->route('login')->with('success', 'Password reset successfully!');
             }
@@ -136,20 +187,85 @@ class ForgotPasswordController extends Controller
     // Private function to send OTP email
     private function sendOtpEmail($email, $otp)
     {
-        try {
-            $data = [
-                'otp' => $otp,
-                'email' => $email
-            ];
+        $fromAddress = config('mail.from.address') ?: config('mail.mailers.smtp.username');
+        $fromName = config('mail.from.name');
+        $data = [
+            'otp' => $otp,
+            'email' => $email
+        ];
 
-            Mail::send('emails.otp', $data, function($message) use ($email) {
+        try {
+            Mail::mailer(config('mail.default'))->send('emails.otp', $data, function($message) use ($email, $fromAddress, $fromName) {
+                if (!empty($fromAddress)) {
+                    $message->from($fromAddress, $fromName);
+                }
+
                 $message->to($email)
-                        ->subject('Your OTP Code - Legal Connect');
+                    ->subject('Your OTP Code - Legal Connect');
             });
 
+            Log::info('Forgot-password OTP email sent successfully', ['email' => $email]);
+            return true;
         } catch (\Exception $e) {
-            Log::error('Send OTP Email Error: ' . $e->getMessage());
-            throw new \Exception('Failed to send OTP email');
+            Log::warning('Forgot-password template OTP email failed: ' . $e->getMessage(), ['email' => $email]);
         }
+
+        try {
+            Mail::mailer(config('mail.default'))->raw("Your OTP code is: {$otp}", function($message) use ($email, $fromAddress, $fromName) {
+                if (!empty($fromAddress)) {
+                    $message->from($fromAddress, $fromName);
+                }
+
+                $message->to($email)
+                    ->subject('Your OTP Code - Legal Connect');
+            });
+
+            Log::info('Forgot-password OTP raw email fallback sent successfully', ['email' => $email]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Send OTP Email Error: ' . $e->getMessage(), ['email' => $email]);
+            return false;
+        }
+    }
+
+    private function sendOtpSms(User $user, int $otp): bool
+    {
+        if (empty($user->cp_number)) {
+            Log::info('Forgot-password: user has no cp_number, skipping SMS', ['user_id' => $user->id]);
+            return false;
+        }
+
+        try {
+            $sms = new SmsChatController();
+            $apiPhone = $sms->formatPhoneForApi($user->cp_number);
+
+            if (empty($apiPhone)) {
+                Log::warning('Forgot-password SMS skipped because phone normalization returned empty', [
+                    'user_id' => $user->id,
+                    'phone' => $user->cp_number,
+                ]);
+                return false;
+            }
+
+            $smsResp = $sms->sendViaIprog($apiPhone, "Your OTP code is: {$otp}");
+            Log::info('Forgot-password OTP SMS attempt', [
+                'user_id' => $user->id,
+                'phone' => $user->cp_number,
+                'api_phone' => $apiPhone,
+                'response' => $smsResp,
+            ]);
+
+            return !empty($smsResp['success']);
+        } catch (\Exception $e) {
+            Log::warning('Failed to send forgot-password OTP via SMS: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+            ]);
+            return false;
+        }
+    }
+
+    private function getPasswordResetEmail(): ?string
+    {
+        return session(self::SESSION_EMAIL_KEY) ?? session('email');
     }
 }

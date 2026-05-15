@@ -35,6 +35,12 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/debug.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/test_routes.php'));
         });
     }
 
@@ -48,5 +54,36 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+    }
+
+    /**
+     * Map the application's API routes.
+     *
+     * @return void
+     */
+    public function mapApiRoutes()
+    {
+        Route::middleware('api')
+            ->prefix('api')
+            ->group(base_path('routes/api.php'));
+    }
+
+    /**
+     * Map the application's Web routes.
+     *
+     * @return void
+     */
+    public function mapWebRoutes()
+    {
+        Route::middleware('web')
+            ->group(base_path('routes/web.php'));
+    }
+
+    /**
+     * Include test routes for debugging
+     */
+    public function includeTestRoutes()
+    {
+        require base_path('routes/test_routes.php');
     }
 }

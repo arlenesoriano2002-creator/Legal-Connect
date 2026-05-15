@@ -6,13 +6,14 @@ use App\Models\Appointment;
 use App\Models\User;
 use App\Models\NotifApprovalAppointment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ClientTableController extends Controller
 {
     public function index()
     {
-        $appointments = Appointment::where('appointment_approval', 'pending')->get();
+        $appointments = Appointment::whereRaw("LOWER(TRIM(appointment_approval)) = ?", ['pending'])->get();
         return view('clientstbl', compact('appointments'));
     }
 
@@ -23,6 +24,7 @@ class ClientTableController extends Controller
         try {
             $appointment = Appointment::findOrFail($id);
             $appointment->appointment_approval = 'approved';
+            $appointment->processed_by = Auth::user()->name ?? 'System';
             $appointment->save();
 
             // Insert notification
@@ -54,6 +56,7 @@ class ClientTableController extends Controller
         try {
             $appointment = Appointment::findOrFail($id);
             $appointment->appointment_approval = 'denied';
+            $appointment->processed_by = Auth::user()->name ?? 'System';
             $appointment->save();
 
             // Insert notification

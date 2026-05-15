@@ -8,6 +8,10 @@ return [
     ],
 
     'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
         'client_guard' => [
             'driver' => 'session',
             'provider' => 'clients',
@@ -16,9 +20,25 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'admin_guard' => [ // ✅ add this
+        'admin_guard' => [
             'driver' => 'session',
             'provider' => 'admins',
+        ],
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'diffun_staff' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'cordon_staff' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'client' => [
+            'driver' => 'session',
+            'provider' => 'clients',
         ],
     ],
 
@@ -33,7 +53,7 @@ return [
             'model' => App\Models\Client::class,
         ],
 
-        'admins' => [ // ✅ add this
+        'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\AdminLogin::class,
         ],
@@ -46,7 +66,6 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-        // you can also add for admins if needed
     ],
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),

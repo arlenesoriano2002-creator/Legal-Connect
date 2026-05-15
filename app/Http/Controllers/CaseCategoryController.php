@@ -34,15 +34,42 @@ class CaseCategoryController extends Controller
     // Add new category
     public function storeCategory(Request $request)
     {
-        $request->validate([
-            'category' => 'required|string|max:255'
+        $validated = $request->validate([
+            'category' => 'required|string|max:255',
+            'cases' => 'nullable|array',
+            'cases.*.case_name' => 'nullable|string|max:255',
+            'cases.*.service_fee' => 'nullable|numeric|min:0',
         ]);
 
-        // Create the category with an initial empty case name
-        CaseCategory::create([
-            'category' => $request->category,
-            'case_name' => 'Initial Case'
-        ]);
+        $cases = collect($validated['cases'] ?? [])
+            ->map(function ($case) {
+                return [
+                    'case_name' => trim((string) ($case['case_name'] ?? '')),
+                    'service_fee' => $this->normalizeServiceFee($case['service_fee'] ?? null),
+                ];
+            })
+            ->filter(fn ($case) => $case['case_name'] !== '')
+            ->values();
+
+        DB::transaction(function () use ($validated, $cases) {
+            if ($cases->isEmpty()) {
+                CaseCategory::create([
+                    'category' => $validated['category'],
+                    'case_name' => 'Initial Case',
+                    'service_fee' => null,
+                ]);
+
+                return;
+            }
+
+            foreach ($cases as $case) {
+                CaseCategory::create([
+                    'category' => $validated['category'],
+                    'case_name' => $case['case_name'],
+                    'service_fee' => $case['service_fee'],
+                ]);
+            }
+        });
 
         return response()->json(['success' => true, 'message' => 'Category added successfully']);
     }
@@ -72,14 +99,16 @@ class CaseCategoryController extends Controller
     // Add new case name under category
     public function storeCase(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'category' => 'required|string|max:255',
-            'case_name' => 'required|string|max:255'
+            'case_name' => 'required|string|max:255',
+            'service_fee' => 'nullable|numeric|min:0',
         ]);
 
         CaseCategory::create([
-            'category' => $request->category,
-            'case_name' => $request->case_name
+            'category' => $validated['category'],
+            'case_name' => $validated['case_name'],
+            'service_fee' => $this->normalizeServiceFee($validated['service_fee'] ?? null),
         ]);
 
         return response()->json(['success' => true, 'message' => 'Case added successfully']);
@@ -88,12 +117,16 @@ class CaseCategoryController extends Controller
     // Update case name
     public function updateCase(Request $request, $id)
     {
-        $request->validate([
-            'case_name' => 'required|string|max:255'
+        $validated = $request->validate([
+            'case_name' => 'required|string|max:255',
+            'service_fee' => 'nullable|numeric|min:0',
         ]);
 
         $case = CaseCategory::findOrFail($id);
-        $case->update(['case_name' => $request->case_name]);
+        $case->update([
+            'case_name' => $validated['case_name'],
+            'service_fee' => $this->normalizeServiceFee($validated['service_fee'] ?? null),
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Case updated successfully']);
     }
@@ -115,5 +148,14 @@ class CaseCategoryController extends Controller
             ->get();
 
         return response()->json($cases);
+    }
+
+    private function normalizeServiceFee($serviceFee): ?string
+    {
+        if ($serviceFee === null || $serviceFee === '') {
+            return null;
+        }
+
+        return number_format((float) $serviceFee, 2, '.', '');
     }
 }

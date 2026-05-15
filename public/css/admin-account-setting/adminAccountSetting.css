@@ -1,0 +1,1555 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+    background-color: #f5f7fb;
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Wrapper and Sidebar */
+#wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: 220px;
+    background: #2f4050;
+    transition: all 0.3s;
+    position: fixed;
+    z-index: 1000;
+}
+
+.sidebar-heading {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.list-group-item {
+    background-color: transparent;
+    border: none;
+    color: #a7b1c2;
+    padding: 12px 15px;
+    border-left: 4px solid transparent;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.list-group-item:hover, .list-group-item:focus {
+    background-color: #293846;
+    color: white;
+    border-left: 4px solid #19aa8d;
+}
+
+.list-group-item.active {
+    background-color: #293846;
+    color: white;
+    border-left: 4px solid #19aa8d;
+}
+
+.list-group-item i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.submenu {
+    padding-left: 30px;
+    background: #293846;
+}
+
+.submenu .list-group-item {
+    padding: 8px 15px;
+    font-size: 13px;
+}
+
+/* Page Content */
+#page-content-wrapper {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    padding: 0;
+    transition: all 0.3s;
+    min-height: 100vh;
+    background-color: #f5f7fb;
+}
+
+/* Toggle Button */
+#menu-toggle {
+    margin-bottom: 0;
+    background-color: #cccccc;
+    border: none;
+    color: #000;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+#menu-toggle:hover {
+    background-color: #b3b3b3;
+}
+
+/* Collapsed Sidebar */
+#wrapper.toggled #sidebar-wrapper {
+    width: 70px;
+}
+
+#wrapper.toggled #page-content-wrapper {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+}
+
+/* Keep logo visible and properly centered in collapsed state */
+#wrapper.toggled .sidebar-heading {
+    padding: 20px 15px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 0 !important;
+    height: 60px; /* Fixed height for consistency */
+    overflow: hidden; /* Prevent any overflow */
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none !important;
+}
+
+#wrapper.toggled .sidebar-heading img {
+    display: block !important;
+    margin: 0 auto !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important; /* Prevent image from shrinking */
+}
+
+#wrapper.toggled .list-group-item {
+    text-align: center;
+    padding: 12px 10px !important; /* Slightly reduced padding */
+    border-left: 4px solid transparent;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px; /* Consistent height for all items */
+    position: relative; /* For positioning chevron */
+}
+
+/* Hide chevron-down icons when sidebar is collapsed */
+#wrapper.toggled .list-group-item .fa-chevron-down {
+    display: none !important;
+}
+
+/* Ensure the main icons remain visible and centered */
+#wrapper.toggled .list-group-item i:not(.fa-chevron-down) {
+    margin-right: 0 !important;
+    font-size: 18px;
+    display: block !important;
+    width: 24px; /* Fixed width for consistent centering */
+    text-align: center;
+}
+
+#wrapper.toggled .list-group-item span:not(.fa) {
+    display: none !important;
+}
+
+#wrapper.toggled .submenu {
+    display: none !important;
+}
+
+/* Ensure proper spacing for chevron in expanded state */
+.list-group-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.list-group-item .fa-chevron-down {
+    margin-left: auto; /* Push chevron to the right */
+    margin-right: 0;
+}
+.list-group-item.active {
+    background-color: #293846 !important;
+    color: white !important;
+    border-left: 4px solid #19aa8d !important;
+}
+
+/* Top Bar */
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    padding: 10px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 220px;
+    z-index: 100;
+    height: 60px;
+    transition: left 0.3s ease;
+}
+
+#wrapper.toggled .top-bar {
+    left: 70px;
+}
+
+.top-bar-spacer {
+    flex: 1;
+}
+
+/* Logout Button - Your Specific Style */
+.logout-btn {
+    padding: 10px !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2.5px !important;
+    font-weight: 500 !important;
+    color: #000 !important;
+    background-color: #cccccc !important;
+    border: none !important;
+    border-radius: 10px !important;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1) !important;
+    cursor: pointer !important;
+    outline: none !important;
+    transition: all 0.3s !important;
+}
+
+.logout-btn:hover {
+    background-color: #cccccc !important;
+    color: #000 !important;
+    transform: none !important;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Account Settings Content */
+.page-description{
+    margin-top: 70px;
+    margin-left: 20px;
+}
+.page-description p {
+    margin-bottom: 0 !important;
+}
+.settings-wrapper {
+    padding: 10px 30px;
+    max-width: 100%;
+}
+
+.settings-header {
+    margin-bottom: 30px;
+}
+
+.settings-header h4 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.settings-header p {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+/* Settings Card */
+.settings-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    border: 1px solid #eaeaea;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    color: #34495e;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* CHANGED: Input width from 60% to 90% */
+.input-wrapper input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    border: 1px solid #ddd;
+    transition: border-color 0.2s;
+}
+
+.input-wrapper input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Also update password input groups to match */
+.password-input-group input {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    outline: none !important;
+    border: 1px solid #ddd !important;
+    transition: border-color 0.2s !important;
+
+}
+
+/* Avatar Section */
+.avatar-section {
+    text-align: center;
+}
+
+.avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+    overflow: hidden;
+    border: 4px solid white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.default-avatar {
+    color: #95a5a6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Buttons */
+.btn-save {
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+}
+
+.btn-save:hover {
+    background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid #3498db;
+    color: #3498db;
+    font-weight: 500;
+    padding: 10px 20px;
+}
+
+.btn-outline-primary:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-outline-secondary {
+    border: 2px solid #95a5a6;
+    color: #7f8c8d;
+    font-weight: 500;
+    padding: 10px 20px;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #95a5a6;
+    color: white;
+}
+
+/* ===== BOOTSTRAP MODAL FIXES ===== */
+/* Remove conflicting styles from Bootstrap modals */
+#logoutConfirmationModal .modal-dialog {
+    margin: 1.75rem auto !important;
+    width: auto !important;
+}
+
+#logoutConfirmationModal .modal-content {
+    background-color: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    display: block !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    width: 800px !important;
+}
+
+#logoutConfirmationModal .title-header {
+    align-items: center !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-top-left-radius: calc(0.3rem - 1px) !important;
+    border-top-right-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    padding: 1rem !important;
+}
+
+#logoutConfirmationModal .modal-title {
+    margin-bottom: 0 !important;
+    line-height: 1.5 !important;
+}
+
+#logoutConfirmationModal .content-modal {
+    flex: 1 1 auto !important;
+    padding: 1rem !important;
+    position: relative !important;
+    justify-content: center !important;
+    justify-self: center !important;
+    text-align: center !important;
+}
+
+#logoutConfirmationModal .modal-footer {
+    align-items: center !important;
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom-right-radius: calc(0.3rem - 1px) !important;
+    border-bottom-left-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    flex-shrink: 0 !important;
+    justify-content: flex-end !important;
+    padding: 0.75rem !important;
+}
+
+#logoutConfirmationModal .modal-footer > * {
+    margin: 0.25rem !important;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop {
+    opacity: 0.5 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1040 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: #000 !important;
+}
+
+.modal-backdrop.fade {
+    opacity: 0 !important;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+}
+
+/* Ensure Bootstrap modal has proper z-index */
+.modal {
+    z-index: 1055 !important;
+}
+
+.modal-dialog {
+    z-index: 1060 !important;
+}
+
+.modal-content {
+    z-index: 1065 !important;
+}
+
+/* Remove your custom modal styles from affecting Bootstrap modals */
+.modal.fade:not(.custom-modal) .modal-content {
+    width: auto !important;
+    display: block !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    background: #fff !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Fix for custom modals to not affect Bootstrap */
+#infoModal.modal,
+#deleteConfirmationModal.modal {
+    z-index: 999 !important;
+}
+
+#infoModal .modal-content,
+#deleteConfirmationModal .modal-content {
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    width: 90% !important;
+    max-width: 700px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 20px !important;
+    padding: 30px 25px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    animation: fadeIn 0.25s ease !important;
+    position: relative !important;
+    max-height: 99vh !important;
+}
+
+/* Make sure Bootstrap modal doesn't get custom modal styles */
+
+/* Fix for Bootstrap modal aria-hidden conflict */
+.modal.fade {
+    display: none !important;
+}
+
+.modal.fade.show {
+    display: flex !important;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Remove conflicting styles from your custom modal */
+#logoutConfirmationModal.modal {
+    display: none !important;
+}
+
+#logoutConfirmationModal.modal.show {
+    display: flex !important;
+}
+
+/* Ensure proper z-index for Bootstrap modal */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+.modal {
+    z-index: 1050 !important;
+}
+
+/* Fix for focus trap */
+.modal.fade .modal-dialog {
+    transform: translateY(-50px) !important;
+    transition: transform 0.3s ease-out !important;
+}
+
+.modal.show .modal-dialog {
+    transform: none !important;
+}
+
+/* Make sure modal content is properly displayed */
+.modal-dialog {
+    margin: auto !important;
+    pointer-events: none !important;
+}
+
+.modal-content {
+    pointer-events: auto  !important;
+}
+
+/* Fix for close button */
+.modal-header .btn-close {
+    padding: 0.5rem !important;
+    margin: -0.5rem -0.5rem -0.5rem auto !important;
+}
+
+/* Password status styling */
+.password-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.password-indicator {
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.password-indicator.weak {
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #ffcdd2;
+}
+
+.password-indicator.medium {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border-color: #ffcc80;
+}
+
+.password-indicator i {
+    margin-right: 5px;
+}
+
+/* Password input with eye toggle */
+.password-input-group {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: #19aa8d;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.password-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* Change Password Modal Styles */
+#changePasswordModal .modal-dialog {
+    max-width: 500px;
+}
+
+#changePasswordModal .modal-content {
+    border-radius: 12px !important;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 700px !important;
+}
+
+#changePasswordModal .modal-header {
+    border-bottom: 1px solid #eaeaea;
+    padding: 1.5rem 1.5rem 1rem;
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+    color: white;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+#changePasswordModal .modal-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#changePasswordModal .modal-header .btn-close {
+    filter: invert(1) brightness(2);
+    opacity: 0.8;
+}
+
+#changePasswordModal .modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+#changePasswordModal .modal-body {
+    padding: 2rem;
+}
+
+#changePasswordModal .settings-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eaeaea;
+    margin-bottom: 0;
+}
+
+#changePasswordModal .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#changePasswordModal .form-label {
+    color: #34495e;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+#changePasswordModal .input-wrapper {
+    position: relative;
+}
+
+#changePasswordModal .input-wrapper input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    border: 1px solid #ddd;
+    transition: border-color 0.2s;
+    padding-right: 40px;
+}
+
+#changePasswordModal .input-wrapper input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+#changePasswordModal .password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#changePasswordModal .password-toggle-btn:hover {
+    color: #19aa8d;
+    transform: translateY(-50%) scale(1.1);
+}
+
+#changePasswordModal .password-toggle-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+#changePasswordModal .btn-save {
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+    width: 100%;
+}
+
+#changePasswordModal .btn-save:hover {
+    background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3);
+}
+
+#changePasswordModal .btn-secondary {
+    background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    width: 100%;
+}
+
+#changePasswordModal .btn-secondary:hover {
+    background-color: #5a6268;
+    color: white;
+}
+
+#changePasswordModal .modal-footer {
+    border-top: 1px solid #eaeaea;
+    padding: 1rem 2rem 2rem;
+    background-color: #f8f9fa;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+#changePasswordModal .modal-footer .btn {
+    flex: 1;
+    margin: 0 0.25rem;
+}
+/* Cancel Button Styling */
+.btn-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 30px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s !important;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268 !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.2) !important;
+}
+
+/* Actions button container */
+.actions.d-flex {
+    margin-top: 20px;
+}
+
+.actions.d-flex .btn {
+    padding: 12px !important;
+}
+
+/* Alert styles inside modal */
+#changePasswordModal .alert {
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+}
+
+/* Error message styling */
+#changePasswordModal .text-danger {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.first-left-content {
+    display: flex;
+    gap: 20px;
+}
+.first-left-content > div {
+    flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #sidebar-wrapper {
+        width: 0;
+    }
+    
+    #page-content-wrapper {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .top-bar {
+        left: 0;
+    }
+    
+    #wrapper.toggled #sidebar-wrapper {
+        width: 220px;
+    }
+    
+    #wrapper.toggled #page-content-wrapper {
+        width: calc(100% - 220px);
+        margin-left: 220px;
+    }
+    
+    #wrapper.toggled .top-bar {
+        left: 220px;
+    }
+    
+    .settings-wrapper {
+        padding: 15px;
+    }
+    
+    .settings-card {
+        padding: 20px;
+    }
+    
+    .avatar {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 15px;
+    }
+    
+    .logout-btn {
+        padding: 8px !important;
+        font-size: 10px !important;
+    }
+    
+    /* Adjust input width for mobile */
+    .input-wrapper input,
+    .password-input-group input {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .settings-card {
+        padding: 15px;
+    }
+    
+    .top-bar {
+        padding: 10px 15px;
+    }
+    
+    .logout-btn {
+        padding: 6px 12px !important;
+        font-size: 10px !important;
+        letter-spacing: 1.5px !important;
+    }
+    
+    #menu-toggle {
+        padding: 6px 12px;
+    }
+    
+    .first-left-content {
+        flex-direction: column;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #bdc3c7;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #95a5a6;
+}
+
+/* Password Strength Styles */
+.password-strength .progress {
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.password-strength .progress-bar {
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Strength colors */
+.strength-weak {
+    background-color: #dc3545 !important; /* Red */
+    width: 25% !important;
+}
+
+.strength-fair {
+    background-color: #fd7e14 !important; /* Orange */
+    width: 50% !important;
+}
+
+.strength-good {
+    background-color: #ffc107 !important; /* Yellow */
+    width: 75% !important;
+}
+
+.strength-strong {
+    background-color: #28a745 !important; /* Green */
+    width: 100% !important;
+}
+
+/* Password match feedback */
+.password-match-feedback small {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.875rem;
+}
+
+/* Password requirements list */
+#passwordRequirementsList {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+    font-size: 0.8rem;
+}
+
+#passwordRequirementsList li {
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#passwordRequirementsList li i {
+    font-size: 0.7rem;
+}
+
+.requirement-met {
+    color: #28a745;
+}
+
+.requirement-not-met {
+    color: #dc3545;
+}
+
+/* Toast Animation - Fade only (no sliding) */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.toast-alert {
+    animation: fadeIn 0.3s ease-out !important;
+    position: fixed !important;
+    top: 80px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+    min-width: 300px !important;
+    max-width: 400px !important;
+    margin-bottom: 10px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    border-left: 4px solid #17a2b8 !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+
+.toast-alert.alert-success {
+    border-left-color: #28a745 !important;
+}
+
+.toast-alert.alert-danger {
+    border-left-color: #dc3545 !important;
+}
+
+.toast-alert.alert-info {
+    border-left-color: #17a2b8 !important;
+}
+
+.toast-alert.fade {
+    animation: fadeOut 0.3s ease-out forwards !important;
+}
+
+/* Remove the old toast container styling since we're styling the toast directly */
+#toastContainer {
+    position: fixed !important;
+    top: 80px !important;
+    right: 20px !important;
+    z-index: 9999 !important;
+}
+
+ /* Password Display Section in Main Form */
+        .password-input-group {
+            position: relative;
+        }
+        
+        .password-input-group input {
+            padding-right: 40px !important;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            z-index: 10;
+            padding: 5px;
+        }
+        
+        .password-toggle:hover {
+            color: #495057;
+        }
+        
+        .password-toggle i {
+            font-size: 16px;
+        }
+        
+        /* Password Status Styling */
+        .password-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .password-indicator {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background-color: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .password-indicator i {
+            margin-right: 5px;
+        }
+        
+        /* Change Password Modal Styles */
+        #changePasswordModal .modal-dialog {
+            max-width: 500px;
+        }
+
+        #changePasswordModal .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        #changePasswordModal .modal-header {
+            border-bottom: 1px solid #eaeaea;
+            padding: 1.5rem 1.5rem 1rem;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        #changePasswordModal .modal-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #changePasswordModal .modal-header .btn-close {
+            filter: invert(1) brightness(2);
+            opacity: 0.8;
+        }
+
+        #changePasswordModal .modal-header .btn-close:hover {
+            opacity: 1;
+        }
+
+        #changePasswordModal .modal-body {
+            padding: 2rem;
+        }
+
+        #changePasswordModal .settings-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #eaeaea;
+            margin-bottom: 0;
+        }
+
+        #changePasswordModal .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        #changePasswordModal .form-label {
+            color: #34495e;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        #changePasswordModal .input-wrapper {
+            position: relative;
+        }
+
+        #changePasswordModal .input-wrapper input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            border: 1px solid #ddd;
+            transition: border-color 0.2s;
+            padding-right: 40px !important;
+        }
+
+        #changePasswordModal .input-wrapper input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        #changePasswordModal .password-toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            z-index: 10;
+            padding: 5px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #changePasswordModal .password-toggle-btn:hover {
+            color: #19aa8d;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        #changePasswordModal .password-toggle-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        #changePasswordModal .password-toggle-btn i {
+            font-size: 16px;
+        }
+
+        #changePasswordModal .btn-save {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+            width: 100%;
+        }
+
+        #changePasswordModal .btn-save:hover {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 62, 80, 0.3);
+        }
+
+        #changePasswordModal .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        #changePasswordModal .btn-secondary:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+
+        #changePasswordModal .modal-footer {
+            border-top: 1px solid #eaeaea;
+            padding: 1rem 2rem 2rem;
+            background-color: #f8f9fa;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        #changePasswordModal .modal-footer .btn {
+            flex: 1;
+            margin: 0 0.25rem;
+        }
+
+        /* Alert styles inside modal */
+        #changePasswordModal .alert {
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+
+        /* Error message styling */
+        #changePasswordModal .text-danger {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* ============================= */
+/* 🔹 NOTIFICATION STYLES 🔹 */
+/* ============================= */
+.notification-container {
+    position: relative;
+    margin-right: 15px;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #333;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #f9f9f9;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 400px;
+    max-width: 90vw;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    display: none;
+    z-index: 9999;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.notification-actions .btn-link {
+    padding: 2px 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    border: 1px solid  #666; 
+    border-radius: 4px;
+}
+
+.notification-actions .btn-link:hover {
+    color: #007bff;
+    border-color: #007bff;
+    text-decoration: none;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #007bff;
+}
+
+.notification-item.unread:hover {
+    background-color: #e6f2ff;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notification-time i {
+    font-size: 10px;
+}
+
+.notification-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.notification-actions-row .btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.notification-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+/* Scrollbar styling for notification list */
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        width: 320px;
+        right: -50px;
+    }
+    
+    .notification-item {
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: 280px;
+        right: -80px;
+    }
+    
+    .notification-container {
+        margin-right: 8px;
+    }
+}

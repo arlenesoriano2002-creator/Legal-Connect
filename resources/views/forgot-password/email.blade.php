@@ -6,6 +6,10 @@
     <link rel="icon" href="{{ asset('KG2025 (2).png') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('css/forgot-password/email.css') }}">
     <title>Forgot Password - Legal Connect</title>
+
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+
 </head>
 <body class="theme-dark-gold">
     <div class="forgot-container">

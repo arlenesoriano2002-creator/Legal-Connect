@@ -1,0 +1,26 @@
+[Unit]
+Description=Laravel Queue Worker
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=3
+WorkingDirectory=/path/to/your/project
+ExecStart=/usr/bin/php /path/to/your/project/artisan queue:work --sleep=3 --tries=3 --timeout=300
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=laravel-queue-worker
+
+[Install]
+WantedBy=multi-user.target
+
+; Notes:
+; - Replace /path/to/your/project with the full path to the Laravel project (e.g., /var/www/legalconnect)
+; - Replace /usr/bin/php with the full path to PHP on your server if different
+; - To enable and start on Linux:
+;   sudo cp laravel-queue.service /etc/systemd/system/laravel-queue.service
+;   sudo systemctl daemon-reload
+;   sudo systemctl enable laravel-queue.service
+;   sudo systemctl start laravel-queue.service

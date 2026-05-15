@@ -151,4 +151,16 @@
             submitBtn.textContent = 'Submitting...';
         });
 
+       document.getElementById('finalizeForm').addEventListener('submit', function(e) {
+
+            const branchTextEl = document.getElementById('selectedBranchText');
+            const branchInput = document.getElementById('selected_branch');
+
+            if (branchTextEl && branchInput) {
+                branchInput.value = branchTextEl.textContent.trim();
+                console.log('Submitting selected_branch:', branchInput.value);
+            }
+        });
+
+
         

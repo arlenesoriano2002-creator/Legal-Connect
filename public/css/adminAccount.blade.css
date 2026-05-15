@@ -28,7 +28,7 @@ html, body {
 }
 
 .sidebar-heading {
-  padding: 20px 15px;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.2);
   color: white;
   font-size: 18px;
@@ -117,31 +117,87 @@ html, body {
 
 /* Collapsed Sidebar */
 #wrapper.toggled #sidebar-wrapper {
-  width: 70px;
+    width: 70px;
 }
 
 #wrapper.toggled #page-content-wrapper {
-  width: calc(100% - 70px);
-  margin-left: 70px;
+    width: calc(100% - 70px);
+    margin-left: 70px;
 }
 
-#wrapper.toggled .sidebar-heading,
-#wrapper.toggled .list-group-item span:not(.fa) {
-  display: none;
+/* Keep logo visible and properly centered in collapsed state */
+#wrapper.toggled .sidebar-heading {
+    padding: 20px 15px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 0 !important;
+    height: 60px; /* Fixed height for consistency */
+    overflow: hidden; /* Prevent any overflow */
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none !important;
+}
+
+#wrapper.toggled .sidebar-heading img {
+    display: block !important;
+    margin: 0 auto !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important; /* Prevent image from shrinking */
 }
 
 #wrapper.toggled .list-group-item {
-  text-align: center;
-  padding: 15px 10px;
+    text-align: center;
+    padding: 12px 10px !important; /* Slightly reduced padding */
+    border-left: 4px solid transparent;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px; /* Consistent height for all items */
+    position: relative; /* For positioning chevron */
 }
 
-#wrapper.toggled .list-group-item i {
-  margin-right: 0;
-  font-size: 18px;
+/* Hide chevron-down icons when sidebar is collapsed */
+#wrapper.toggled .list-group-item .fa-chevron-down {
+    display: none !important;
+}
+
+/* Ensure the main icons remain visible and centered */
+#wrapper.toggled .list-group-item i:not(.fa-chevron-down) {
+    margin-right: 0 !important;
+    font-size: 18px;
+    display: block !important;
+    width: 24px; /* Fixed width for consistent centering */
+    text-align: center;
+}
+
+#wrapper.toggled .list-group-item span:not(.fa) {
+    display: none !important;
 }
 
 #wrapper.toggled .submenu {
-  display: none !important;
+    display: none !important;
+}
+
+/* Ensure proper spacing for chevron in expanded state */
+.list-group-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.list-group-item .fa-chevron-down {
+    margin-left: auto; /* Push chevron to the right */
+    margin-right: 0;
+}
+.list-group-item.active {
+    background-color: #293846 !important;
+    color: white !important;
+    border-left: 4px solid #19aa8d !important;
 }
 
 /* ============================= */
@@ -154,6 +210,13 @@ html, body {
   background: #f9f9f9;
   padding: 10px 20px;
   box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+  position: fixed;
+    top: 0;
+    right: 0;
+    left: 220px;
+    z-index: 999;
+    height: 60px;
+    transition: left 0.3s ease;
 }
 
 #menu-toggle {
@@ -322,10 +385,25 @@ html, body {
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
 }
 
+/* FIXED: Remove problematic fixed widths */
+.row {
+  display: flex !important;
+  flex-wrap: wrap !important; /* Allow wrapping on smaller screens */
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+.col-md-8 {
+  flex: 0 0 66.666667%;
+  max-width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
 /* ============================= */
 /* 🔹 MODAL STYLES */
 /* ============================= */
-.modal {
+/*.modal {
   display: none;
   position: fixed;
   z-index: 9999;
@@ -336,7 +414,18 @@ html, body {
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(5px);
+}*/
+#infoModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
 }
+
 
 .modal-content {
   background-color: #fff;
@@ -388,7 +477,7 @@ html, body {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
-  margin-bottom: 15px;
+  height: 40px;
 }
 
 .form-control:focus {
@@ -436,6 +525,7 @@ html, body {
 
 .gap-2 {
   gap: 10px;
+  justify-content: flex-end !important;
 }
 
 .mb-3 {
@@ -616,6 +706,8 @@ html, body {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    margin-right: 0; /* Remove the right margin */
+    width: 100%; /* Ensure full width */
 }
 
 .card-header {
@@ -625,17 +717,31 @@ html, body {
 
 .table-responsive {
     border-radius: 8px;
+    overflow: hidden; /* Ensure badges stay inside table */
 }
 
+/* FIX: Ensure table cells and badges stay in their place */
 .table th {
     border-top: none;
     font-weight: 600;
     color: #374151;
     background-color: #f8f9fa;
+    position: relative; /* Keep badges in place */
+    z-index: 1;
 }
 
 .table td {
     vertical-align: middle;
+    position: relative; /* Keep badges in place */
+}
+
+/* FIX: Ensure badges stay inside table cells */
+.table td .badge {
+    display: inline-block;
+    position: static !important; /* Remove any absolute positioning */
+    float: none !important; /* Remove any floating */
+    margin: 0;
+    transform: none !important; /* Remove any transforms */
 }
 
 .btn-sm {
@@ -698,5 +804,451 @@ html, body {
     
     .card-header .d-flex form {
         width: 100%;
+    }
+}
+/* Fix: allow Bootstrap modals to override your custom modal styles */
+#logoutConfirmationModal.modal {
+    display: none !important;
+}
+
+#logoutConfirmationModal.modal.show {
+    display: block !important;
+}
+
+#logoutConfirmationModal .modal-content {
+    display: block !important;
+}
+/* Style for read-only inputs in modal */
+.modal-left input[readonly] {
+    background-color: #f5f5f7;
+    border: 1px solid #e0e0e0;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+/* Ensure modal displays time correctly */
+#selected_time {
+    font-family: monospace;
+}
+/* Modal header adjustments to accommodate filter */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#logoutConfirmationModal .title-header {
+    align-items: center !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-top-left-radius: calc(0.3rem - 1px) !important;
+    border-top-right-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    padding: 1rem !important;
+}
+.modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end !important;
+    padding: calc(var(--bs-modal-padding) - var(--bs-modal-footer-gap) * .5);
+    background-color: var(--bs-modal-footer-bg);
+    border-top: var(--bs-modal-footer-border-width) solid var(--bs-modal-footer-border-color);
+    border-bottom-right-radius: var(--bs-modal-inner-border-radius);
+    border-bottom-left-radius: var(--bs-modal-inner-border-radius);
+}
+#logoutConfirmationModal .modal-container {
+    background-color: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    display: block !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    width: 800px !important;
+}
+
+/* Password strength styling */
+/* Add this to your CSS file (css/adminAccount.blade.css) or in a style tag */
+
+/* Password toggle button styling - remove hover effect */
+.input-group .btn-outline-secondary {
+    border-left: 0;
+    background-color: transparent;
+    transition: none !important;
+}
+
+.input-group .btn-outline-secondary:hover,
+.input-group .btn-outline-secondary:focus,
+.input-group .btn-outline-secondary:active {
+    background-color: transparent !important;
+    border-color: #ced4da !important;
+    color: #6c757d !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Remove default Bootstrap button hover effects */
+#toggleCreatePassword:hover,
+#toggleEditPassword:hover {
+    background-color: transparent;
+    border-color: #ced4da;
+}
+
+#toggleCreatePassword:active,
+#toggleEditPassword:active {
+    background-color: transparent !important;
+    transform: none;
+}
+
+/* Password strength styling */
+.password-strength .progress {
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.password-strength .progress-bar {
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength small {
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
+/* Modal specific styles for password field */
+.modal-content .form-text {
+    margin-bottom: 0.2rem;
+}
+
+.modal-content .fa-check-circle,
+.modal-content .fa-times-circle {
+    margin-right: 5px;
+    width: 16px;
+}
+
+/* Eye icon specific styling */
+.fa-eye, .fa-eye-slash {
+    color: #6c757d;
+    transition: none;
+}
+
+/* Ensure eye button doesn't change on hover */
+.btn-outline-secondary:hover .fa-eye,
+.btn-outline-secondary:hover .fa-eye-slash {
+    color: #6c757d;
+}
+
+/* Make sure the button doesn't have any hover effects */
+.input-group .btn-outline-secondary {
+    border-color: #ced4da;
+}
+
+.input-group .btn-outline-secondary:not(:disabled):not(.disabled):active,
+.input-group .btn-outline-secondary:not(:disabled):not(.disabled).active {
+    background-color: transparent;
+    border-color: #ced4da;
+    color: #6c757d;
+}
+
+/* Alternative minimal styling for password toggle button */
+/* Add this to css/adminAccount.blade.css or in a style tag */
+.password-toggle-btn {
+    background: transparent;
+    border: 1px solid #ced4da;
+    border-left: 0;
+    color: #6c757d;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.password-toggle-btn:hover {
+    background: transparent;
+    color: #6c757d;
+}
+
+.password-toggle-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.password-toggle-btn i {
+    font-size: 1rem;
+}
+
+/* ============================= */
+/* 🔹 NOTIFICATION STYLES 🔹 */
+/* ============================= */
+.notification-container {
+    position: relative;
+    margin-right: 15px;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #333;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #f9f9f9;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 400px;
+    max-width: 90vw;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    display: none;
+    z-index: 9999;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.notification-actions .btn-link {
+    padding: 2px 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    border: 1px solid  #666; 
+    border-radius: 4px;
+}
+
+.notification-actions .btn-link:hover {
+    color: #007bff;
+    border-color: #007bff;
+    text-decoration: none;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #007bff;
+}
+
+.notification-item.unread:hover {
+    background-color: #e6f2ff;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notification-time i {
+    font-size: 10px;
+}
+
+.notification-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.notification-actions-row .btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.notification-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+/* Scrollbar styling for notification list */
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        width: 320px;
+        right: -50px;
+    }
+    
+    .notification-item {
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: 280px;
+        right: -80px;
+    }
+    
+    .notification-container {
+        margin-right: 8px;
     }
 }

@@ -12,11 +12,16 @@ class CaseCategory extends Model
     protected $fillable = [
         'category',
         'case_name',
+        'service_fee',
         'created_at',
         'updated_at'
     ];
 
     protected $table = 'case_categories';
+
+    protected $casts = [
+        'service_fee' => 'decimal:2',
+    ];
 
     // Get all unique categories
     public static function getCategories()

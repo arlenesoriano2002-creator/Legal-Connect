@@ -6,6 +6,10 @@
     <link rel="icon" href="{{ asset('KG2025 (2).png') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('css/forgot-password/reset.css') }}">
     <title>Reset Password - Legal Connect</title>
+
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+
 </head>
 <body class="theme-dark-gold">
     <div class="forgot-container">
@@ -43,7 +47,7 @@
             <!-- Reset Password Form -->
             <form method="POST" action="{{ route('password.reset') }}">
                 @csrf
-                <input type="hidden" name="email" value="{{ session('email') ?? old('email') }}">
+                <input type="hidden" name="email" value="{{ session('password_reset_email') ?? session('email') ?? old('email') }}">
                 
                 <!-- New Password -->
                 <div class="form-group">

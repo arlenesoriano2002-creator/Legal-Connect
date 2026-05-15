@@ -27,25 +27,31 @@ class ReviewController extends Controller
      * Store client feedback (only if logged in).
      */
     public function store(Request $request)
-        {
-            // Check if user is not logged in
-            if (!Auth::check()) {
-                return response()->json([
-                    'error' => 'You must log in first to submit feedback.'
-                ], 401);
-            }
+    {
+        // Check if user is not logged in
+        if (!Auth::check()) {
+            return response()->json([
+                'error' => 'You must log in first to submit feedback.'
+            ], 401);
+        }
 
-            $request->validate([
-                'review' => 'required|string|max:1000',
-                'rating' => 'required|integer|min:1|max:5',
-                'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            ]);
+        // Validate request
+        $request->validate([
+            'review' => 'required|string|max:1000',
+            'rating' => 'required|integer|min:1|max:5',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
+        try {
             $review = new Review();
             $review->name = Auth::user()->name;
             $review->email = Auth::user()->email;
             $review->review = $request->review;
             $review->rating = $request->rating;
+            
+            // Add user_id if your reviews table has this column
+            // If not, you can add it with a migration
+            // $review->user_id = Auth::id();
 
             if ($request->hasFile('image')) {
                 $fileName = time() . '_' . $request->file('image')->getClientOriginalName();
@@ -58,6 +64,11 @@ class ReviewController extends Controller
             return response()->json([
                 'success' => 'Thank you! Your feedback has been submitted.'
             ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to submit feedback: ' . $e->getMessage()
+            ], 500);
         }
-
+    }
 }

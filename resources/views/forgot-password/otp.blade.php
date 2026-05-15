@@ -6,6 +6,10 @@
     <link rel="icon" href="{{ asset('KG2025 (2).png') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('css/forgot-password/otp.css') }}">
     <title>Verify OTP - Legal Connect</title>
+
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+
 </head>
 <body class="theme-dark-gold">
     <div class="forgot-container">
@@ -36,7 +40,7 @@
             <!-- OTP Form -->
             <form method="POST" action="{{ route('password.verify-otp') }}">
                 @csrf
-                <input type="hidden" name="email" value="{{ session('email') ?? old('email') }}">
+                <input type="hidden" name="email" value="{{ session('password_reset_email') ?? session('email') ?? old('email') }}">
                 
                 <!-- OTP Input -->
                 <div class="form-group">

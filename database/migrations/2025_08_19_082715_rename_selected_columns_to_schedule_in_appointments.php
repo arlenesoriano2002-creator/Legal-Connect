@@ -11,10 +11,20 @@ return new class extends Migration
      */
     public function up(): void
 {
-    Schema::table('appointments', function (Blueprint $table) {
-        $table->renameColumn('selected_date', 'schedule_date');
-        $table->renameColumn('selected_time', 'schedule_time');
-    });
+    // Only rename if the old column exists and the new column does not exist yet
+    if (Schema::hasTable('appointments')) {
+        if (Schema::hasColumn('appointments', 'selected_date') && !Schema::hasColumn('appointments', 'schedule_date')) {
+            Schema::table('appointments', function (Blueprint $table) {
+                $table->renameColumn('selected_date', 'schedule_date');
+            });
+        }
+
+        if (Schema::hasColumn('appointments', 'selected_time') && !Schema::hasColumn('appointments', 'schedule_time')) {
+            Schema::table('appointments', function (Blueprint $table) {
+                $table->renameColumn('selected_time', 'schedule_time');
+            });
+        }
+    }
 }
 
 public function down(): void

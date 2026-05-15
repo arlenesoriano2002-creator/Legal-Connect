@@ -1,4 +1,5 @@
 class CalendarManager {
+    static MAX_SLOT_CAPACITY = 4;
     constructor() {
         this.currentDate = new Date();
         this.selectedColor = null;
@@ -11,9 +12,18 @@ class CalendarManager {
         this.modalDateColor = null;
         this.modalTimeColor = null;
         this.existingTimeSlotData = {};
+        this.branch = 'diffun';
+        
+        // Multi-office support
+        this.officeId = null;
+        this.offices = [];
+        
+        // Tooltip management
+        this.activeTooltips = new Set();
         
         this.initializeEventListeners();
-        this.loadMonthView();
+        this.loadOffices();
+        this.fixDropdownOverflow();
     }
 
     generateTimeIntervals() {
@@ -56,9 +66,34 @@ class CalendarManager {
     }
 
     initializeEventListeners() {
+        // Office selector change handler
+        $('#officeSelector').on('change', (e) => {
+            this.officeId = $(e.currentTarget).val();
+            if (this.officeId) {
+                this.loadMonthView();
+            }
+        });
+        
         // View tabs
         $('.view-tab').on('click', (e) => {
-            this.switchView($(e.currentTarget).data('view'));
+            const view = $(e.currentTarget).data('view');
+            
+            // Update tabs
+            $('.view-tab').removeClass('active');
+            $(e.currentTarget).addClass('active');
+            
+            // Show/hide views
+            $('.view-pane').hide();
+            
+            if (view === 'cordon') {
+                $('#cordonView').show();
+                if (window.cordonCalendar) {
+                    window.cordonCalendar.loadCordonMonthView();
+                }
+            } else {
+                $('#monthView').show();
+                calendar.switchView(view);
+            }
         });
         
         // Month navigation
@@ -73,6 +108,45 @@ class CalendarManager {
         this.initializeModalEventListeners();
     }
 
+    async loadOffices() {
+        try {
+            const response = await $.ajax({
+                url: '/api/law-offices',
+                type: 'GET',
+                dataType: 'json'
+            });
+            
+            this.offices = response.data || [];
+            this.populateOfficeSelector();
+        } catch (error) {
+            console.error('Failed to load offices:', error);
+            // Fallback - try to load from session or use default
+            this.loadOfficeFromSession();
+        }
+    }
+
+    populateOfficeSelector() {
+        const selector = $('#officeSelector');
+        selector.empty();
+        selector.append('<option value="">-- Select Office --</option>');
+        
+        this.offices.forEach(office => {
+            selector.append(`<option value="${office.id}">${office.law_office}</option>`);
+        });
+        
+        // Try to set selected value from session
+        this.loadOfficeFromSession();
+    }
+
+    loadOfficeFromSession() {
+        const sessionOfficeId = sessionStorage.getItem('selectedOfficeId');
+        if (sessionOfficeId) {
+            $('#officeSelector').val(sessionOfficeId);
+            this.officeId = sessionOfficeId;
+            this.loadMonthView();
+        }
+    }
+
     initializeModalEventListeners() {
         // Date color selection in modal
         $('.modal-color-option[data-color]').on('click', (e) => {
@@ -82,81 +156,87 @@ class CalendarManager {
             
             if (isDateColor) {
                 this.selectModalDateColor(color);
-            } else {
-                if (this.modalSelectedTimeSlot) {
-                    this.selectModalTimeColor(color);
-                } else {
-                    this.showMessage('Please select a time slot first', 'error');
+                
+                // Optional: Immediately update the calendar UI preview
+                if (this.modalSelectedDate) {
+                    this.updateDateCellPreview(color);
                 }
             }
+            // Remove the time slot color selection from here
         });
-
-        // Time slot selection in modal
-        $(document).on('click', '.time-slot-row', (e) => {
-            const $row = $(e.currentTarget).closest('.time-slot-row');
-            this.selectModalTimeSlot($row);
-        });
-
+        
         // Save modal changes
         $('#saveModalChanges').on('click', () => {
             this.saveModalChanges();
         });
-
+        
         // Modal hidden event
         $('#colorSelectionModal').on('hidden.bs.modal', () => {
             this.resetModalState();
         });
+        
+        // Modal shown event - ensure UI is synchronized
+        $('#colorSelectionModal').on('shown.bs.modal', () => {
+            if (this.modalSelectedDate && this.modalDateColor) {
+                // Ensure the correct option is visually selected
+                setTimeout(() => {
+                    this.selectModalDateColor(this.modalDateColor);
+                }, 50);
+            }
+        });
     }
 
     selectModalDateColor(color) {
+        if (!color) {
+            console.warn('No color provided to selectModalDateColor');
+            return;
+        }
+        
         this.modalDateColor = color;
         
-        // Update UI
-        $('.modal-section:first .modal-color-option').removeClass('selected');
-        $(`.modal-section:first .modal-color-option[data-color="${color}"]`).addClass('selected');
-    }
-
-    selectModalTimeColor(color) {
-        this.modalTimeColor = color;
+        // Remove all selected classes first
+        $('.modal-color-option').removeClass('selected');
         
-        // Update UI
-        $('.modal-section:last .modal-color-option').removeClass('selected');
-        $(`.modal-section:last .modal-color-option[data-color="${color}"]`).addClass('selected');
-        
-        // Update the selected time slot row if one is selected
-        if (this.modalSelectedTimeSlot) {
-            this.applyColorToTimeSlot(this.modalSelectedTimeSlot, color);
-        }
-    }
-
-    selectModalTimeSlot($row) {
-        // Remove previous selection
-        $('.time-slot-row').removeClass('selected');
-        
-        // Add selection to current row
-        $row.addClass('selected');
-        this.modalSelectedTimeSlot = $row;
-        
-        // Get existing color from the row
-        const existingColor = $row.hasClass('color-red') ? 'red' : 
-                             $row.hasClass('color-green') ? 'green' : null;
-        
-        // Update time color selection in the modal
-        if (existingColor) {
-            this.selectModalTimeColor(existingColor);
+        // Find and select the correct option
+        const $option = $(`.modal-color-option[data-color="${color}"]`);
+        if ($option.length) {
+            $option.addClass('selected');
+            console.log('Selected date color:', color);
         } else {
-            // Reset time color selection
-            $('.modal-section:last .modal-color-option').removeClass('selected');
-            this.modalTimeColor = null;
+            console.error('Color option not found for color:', color);
         }
-        
-        console.log('Selected time slot:', {
-            slot: $row.data('time-slot'),
-            timeRange: $row.data('time-range'),
-            color: existingColor
-        });
     }
-     isPastDate(dateString) {
+    
+    // NEW METHOD: Update the calendar cell preview in the background
+    updateDateCellPreview(color) {
+        if (!this.modalSelectedDate) return;
+        
+        const $cell = $(`.day-cell[data-date="${this.modalSelectedDate}"]`);
+        if ($cell.length) {
+            // Remove existing color classes
+            $cell.removeClass('color-red color-orange color-green');
+            
+            // Add preview class (temporary)
+            $cell.addClass(`preview-color-${color}`);
+            
+            // Apply temporary styling
+            const colorMap = {
+                'red': '#dc2626',
+                'orange': '#ea580c',
+                'green': '#16a34a'
+            };
+            
+            if (colorMap[color]) {
+                $cell.css({
+                    'background-color': colorMap[color],
+                    'color': 'white',
+                    'opacity': '0.8' // Indicate it's a preview
+                });
+            }
+        }
+    }
+
+    isPastDate(dateString) {
         if (!dateString) return false;
         
         const today = new Date();
@@ -168,7 +248,8 @@ class CalendarManager {
         
         return compareDate < today;
     }
-     async openModalForDate(date) {
+    
+    async openModalForDate(date) {
         // Check if the date is in the past
         if (this.isPastDate(date)) {
             this.showMessage('Cannot edit past dates', 'error');
@@ -187,17 +268,54 @@ class CalendarManager {
             day: 'numeric'
         });
         
-        // Update modal title
-        $('#modalDateDisplay').text(formattedDate);
+        // Update modal title with branch identifier
+        $('#modalDateDisplay').text(formattedDate + ' (Diffun Branch)');
         
-        // Reset modal state
+        // RESET MODAL STATE FIRST
         this.resetModalState();
+        
+        // Get the clicked date cell's current color from the calendar UI
+        const $clickedCell = $(`.day-cell[data-date="${date}"]`);
+        let cellColor = null;
+        
+        // Determine the color from the clicked cell's CSS classes
+        if ($clickedCell.hasClass('color-green')) {
+            cellColor = 'green';
+        } else if ($clickedCell.hasClass('color-red')) {
+            cellColor = 'red';
+        } else if ($clickedCell.hasClass('color-orange')) {
+            cellColor = 'orange';
+        }
+        
+        console.log('Clicked cell color detected:', { 
+            date: date, 
+            color: cellColor,
+            classes: $clickedCell.attr('class') 
+        });
         
         // Load existing data for this date
         await this.loadModalData(date);
         
+        // OVERRIDE: If we detected a color from the UI, use it
+        // This ensures the modal reflects the visual state of the clicked cell
+        if (cellColor && (!this.modalDateColor || this.modalDateColor !== cellColor)) {
+            console.log('Overriding modal color with clicked cell color:', cellColor);
+            this.selectModalDateColor(cellColor);
+        }
+        
+        // Debug: Check what was loaded
+        console.log('After loading modal data:', {
+            modalSelectedDate: this.modalSelectedDate,
+            modalDateColor: this.modalDateColor,
+            existingTimeSlotData: this.existingTimeSlotData,
+            cellColor: cellColor
+        });
+        
         // Populate time slots table
         this.populateTimeSlotsTable();
+        
+        // Mark this as Diffun branch
+        $('#saveModalChanges').data('branch', 'diffun');
         
         // Show modal
         $('#colorSelectionModal').modal('show');
@@ -207,11 +325,61 @@ class CalendarManager {
         this.modalSelectedTimeSlot = null;
         this.modalDateColor = null;
         this.modalTimeColor = null;
+        this.existingTimeSlotData = {};
         
         // Reset UI
         $('.modal-color-option').removeClass('selected');
         $('.time-slot-row').removeClass('selected');
         $('#dateDescriptionInput').val('');
+        
+        // Clear any preview styling from calendar cells
+        $('.day-cell').removeClass('preview-color-red preview-color-orange preview-color-green')
+            .css({
+                'background-color': '',
+                'color': '',
+                'opacity': ''
+            });
+    }
+
+    async loadModalData(date) {
+        try {
+            console.log('Loading modal data for date:', date, 'Office:', this.officeId);
+            
+            // Load date-level data
+            let url = `/calendar/date-data?date=${date}`;
+            if (this.officeId) {
+                url += `&office_id=${this.officeId}`;
+            }
+            
+            const response = await $.get(url);
+            console.log('Modal data response:', response);
+            
+            if (response.status === 'success') {
+                const data = response.data;
+                console.log('Modal data:', data);
+                
+                // Set date color and description
+                if (data.date_color) {
+                    this.selectModalDateColor(data.date_color);
+                    $('#dateDescriptionInput').val(data.date_description || '');
+                } else if (data.color) {
+                    // Try alternative structure (some APIs might return color directly)
+                    this.selectModalDateColor(data.color);
+                    $('#dateDescriptionInput').val(data.description || '');
+                } else {
+                    // No color set, reset the selection
+                    $('.modal-section:first .modal-color-option').removeClass('selected');
+                    $('#dateDescriptionInput').val('');
+                }
+                
+                // Store time slot data for later use
+                this.existingTimeSlotData = data.time_slots || {};
+                console.log('Existing time slot data:', this.existingTimeSlotData);
+            }
+        } catch (error) {
+            console.error('Error loading modal data:', error);
+            this.existingTimeSlotData = {};
+        }
     }
 
     populateTimeSlotsTable() {
@@ -230,7 +398,7 @@ class CalendarManager {
             let isPastTimeSlot = false;
             if (isToday) {
                 // Parse the start time from the time slot display
-                const startTimeStr = slot.display.split(' - ')[0]; // Get "8:00 AM"
+                const startTimeStr = slot.display.split(' - ')[0];
                 const [time, period] = startTimeStr.split(' ');
                 const [hours, minutes] = time.split(':').map(Number);
                 
@@ -253,9 +421,12 @@ class CalendarManager {
             const existingData = this.existingTimeSlotData[slot.slot];
             const hasColor = existingData && existingData.color;
             
-            // Determine the slot number to display
-            // If no color is set, show 0. Otherwise show the original slot number
-            const slotNumberValue = hasColor ? slot.slot : 0;
+            // ✅ slot_number must come from DB or user input, NOT from time_slot
+            const slotNumberValue = existingData ? existingData.slot_number || 0 : 0;
+            
+            // Get current color for dropdown
+            const currentColor = hasColor ? existingData.color : '';
+            const description = existingData ? existingData.description || '' : '';
             
             const row = `
                 <tr class="time-slot-row ${isPastTimeSlot ? 'past-time-slot' : ''}" 
@@ -270,7 +441,7 @@ class CalendarManager {
                                class="form-control form-control-sm time-slot-number" 
                                value="${slotNumberValue}"
                                min="0" 
-                               max="24"
+                               max="${CalendarManager.MAX_SLOT_CAPACITY}"
                                style="border: 1px solid #ced4da; width: 80px;"
                                ${isPastTimeSlot ? 'disabled' : ''}>
                     </td>
@@ -278,11 +449,18 @@ class CalendarManager {
                         <input type="text" 
                                class="form-control form-control-sm time-slot-description" 
                                placeholder="Description for this time slot" 
+                               value="${description}"
                                style="border: 1px solid #ced4da;"
                                ${isPastTimeSlot ? 'disabled' : ''}>
                     </td>
-                    <td style="width: 60px; text-align: center;">
-                        <div class="time-slot-color-indicator"></div>
+                    <td style="width: 150px;">
+                        <select class="form-select form-select-sm time-slot-availability" 
+                                ${isPastTimeSlot ? 'disabled' : ''}
+                                style="border: 1px solid #ced4da; font-size: 0.875rem;">
+                            <option value="">Select availability</option>
+                            <option value="green" ${currentColor === 'green' ? 'selected' : ''}>Available</option>
+                            <option value="red" ${currentColor === 'red' ? 'selected' : ''}>Not Available</option>
+                        </select>
                     </td>
                 </tr>
             `;
@@ -292,194 +470,103 @@ class CalendarManager {
         // Load existing time slot data
         this.loadTimeSlotData();
         
-        // Make time slots clickable for color selection (but not interfere with inputs)
-        this.initializeTimeSlotInteractions();
+        // Initialize availability dropdown change events
+        this.initializeAvailabilityDropdowns();
+    }
+    
+    initializeAvailabilityDropdowns() {
+        // Remove previous event listeners
+        $('.time-slot-availability').off('change');
+        $(document).off('input', '.time-slot-number').on('input', '.time-slot-number', (e) => {
+            const $input = $(e.currentTarget);
+            const rawValue = parseInt($input.val(), 10);
+            const normalizedValue = Number.isNaN(rawValue)
+                ? 0
+                : Math.max(0, Math.min(CalendarManager.MAX_SLOT_CAPACITY, rawValue));
+
+            $input.val(normalizedValue);
+        });
         
-        // Update slot numbers based on color status
-        this.updateSlotNumbersBasedOnColor();
-    }
-    updateSlotNumbersBasedOnColor() {
-        $('.time-slot-row').each((index, row) => {
-            const $row = $(row);
-            const hasColor = $row.hasClass('color-red') || $row.hasClass('color-green');
-            const originalSlot = $row.data('time-slot');
-            
-            if (!hasColor) {
-                // If no color, set slot number to 0
-                $row.find('.time-slot-number').val(0);
-            } else {
-                // If has color, ensure slot number is not 0
-                const currentValue = parseInt($row.find('.time-slot-number').val());
-                if (currentValue === 0) {
-                    $row.find('.time-slot-number').val(originalSlot);
-                }
-            }
-        });
-    }
- initializeTimeSlotInteractions() {
-        // Remove previous event listeners to prevent duplicates
-        $('.time-slot-row').off('click').off('dblclick');
-
-        // When a time slot row is clicked, select it for color editing
-        $('.time-slot-row').on('click', (e) => {
-            // Don't trigger if clicking on input fields or their children
-            if ($(e.target).is('input') || 
-                $(e.target).is('textarea') || 
-                $(e.target).hasClass('form-control') ||
-                $(e.target).closest('input, textarea, .form-control').length > 0) {
-                return;
-            }
-            
-            const $row = $(e.currentTarget);
-            
-            // Don't allow selection of past time slots
-            if ($row.hasClass('past-time-slot')) {
-                this.showMessage('Past time slots cannot be edited', 'error');
-                return;
-            }
-            
-            this.selectModalTimeSlot($row);
-        });
-
-        // Add color change on double-click for quick editing
-        $('.time-slot-row').on('dblclick', (e) => {
-            // Don't trigger if clicking on input fields
-            if ($(e.target).is('input') || 
-                $(e.target).is('textarea') || 
-                $(e.target).hasClass('form-control') ||
-                $(e.target).closest('input, textarea, .form-control').length > 0) {
-                return;
-            }
-            
-            const $row = $(e.currentTarget);
+        // Add change event for availability dropdowns
+        $(document).off('change', '.time-slot-availability').on('change', '.time-slot-availability', (e) => {
+            const $dropdown = $(e.currentTarget);
+            const $row = $dropdown.closest('.time-slot-row');
+            const selectedValue = $dropdown.val();
             
             // Don't allow editing of past time slots
             if ($row.hasClass('past-time-slot')) {
                 this.showMessage('Past time slots cannot be edited', 'error');
+                $dropdown.val(''); // Reset to empty
                 return;
             }
             
-            this.quickToggleTimeSlotColor($row);
-        });
-
-        // Make sure input fields are fully functional (only for non-past slots)
-        $('.time-slot-description, .time-slot-number').off('focus').on('focus', function(e) {
-            e.stopPropagation();
-            const $row = $(this).closest('.time-slot-row');
-            if (!$row.hasClass('past-time-slot')) {
-                $row.removeClass('selected');
-            }
-        });
-
-        $('.time-slot-description, .time-slot-number').off('click').on('click', function(e) {
-            e.stopPropagation();
-        });
-
-        $('.time-slot-description, .time-slot-number').off('input').on('input', function(e) {
-            e.stopPropagation();
+            // Apply the color based on selection
+            this.applyAvailabilityToTimeSlot($row, selectedValue);
         });
     }
-
- quickToggleTimeSlotColor($row) {
-        // Don't allow editing of past time slots
-        if ($row.hasClass('past-time-slot')) {
-            this.showMessage('Past time slots cannot be edited', 'error');
-            return;
-        }
-        
-        const currentColor = $row.hasClass('color-red') ? 'red' : 
-                           $row.hasClass('color-green') ? 'green' : null;
-        
-        let newColor;
-        if (!currentColor || currentColor === 'red') {
-            newColor = 'green';
-        } else {
-            newColor = 'red';
-        }
-        
-        this.applyColorToTimeSlot($row, newColor);
-        
-        // Update the time color selection in modal
-        this.selectModalTimeColor(newColor);
-    }
-
-    applyColorToTimeSlot($row, color) {
+    
+    applyAvailabilityToTimeSlot($row, color) {
         // Remove existing color classes
         $row.removeClass('color-red color-green');
         
-        // Add new color class
-        $row.addClass(`color-${color}`);
-        
-        // Update color indicator
-        $row.find('.time-slot-color-indicator')
-            .removeClass('color-red color-green')
-            .addClass(`color-${color}`);
-        
-        // Update slot number based on color status
-        const originalSlot = $row.data('time-slot');
-        const $slotNumberInput = $row.find('.time-slot-number');
-        
-        if (color) {
-            // If color is being set, ensure slot number is not 0
-            const currentValue = parseInt($slotNumberInput.val());
-            if (currentValue === 0) {
-                $slotNumberInput.val(originalSlot);
+        if (color === 'green') {
+            // Add color class for visual feedback
+            $row.addClass(`color-${color}`);
+            
+            const $slotNumberInput = $row.find('.time-slot-number');
+            const currentValue = parseInt($slotNumberInput.val(), 10);
+            
+            // Available slots default to full capacity when no capacity is currently set.
+            if (Number.isNaN(currentValue) || currentValue === 0) {
+                $slotNumberInput.val(CalendarManager.MAX_SLOT_CAPACITY);
             }
+        } else if (color === 'red') {
+            // Not available slots must always have zero capacity.
+            $row.addClass(`color-${color}`);
+            $row.find('.time-slot-number').val(0);
         } else {
-            // If color is being removed, set slot number to 0
-            $slotNumberInput.val(0);
-        }
-    }
-
-    async loadModalData(date) {
-        try {
-            console.log('Loading modal data for date:', date);
-            
-            // Load date-level data
-            const response = await $.get(`/calendar/date-data?date=${date}`);
-            console.log('Modal data response:', response);
-            
-            if (response.status === 'success') {
-                const data = response.data;
-                
-                // Set date color and description
-                if (data.date_color) {
-                    this.selectModalDateColor(data.date_color);
-                    $('#dateDescriptionInput').val(data.date_description || '');
-                }
-                
-                // Store time slot data for later use
-                this.existingTimeSlotData = data.time_slots || {};
-                console.log('Existing time slot data:', this.existingTimeSlotData);
-            }
-        } catch (error) {
-            console.error('Error loading modal data:', error);
-            this.existingTimeSlotData = {};
+            // If availability is cleared, set slot number to 0
+            $row.find('.time-slot-number').val(0);
         }
     }
 
     loadTimeSlotData() {
         if (!this.existingTimeSlotData) return;
-        
-        Object.entries(this.existingTimeSlotData).forEach(([slot, data]) => {
-            const $row = $(`.time-slot-row[data-time-slot="${slot}"]`);
-            if ($row.length) {
-                if (data.color) {
-                    $row.addClass(`color-${data.color}`);
-                    $row.find('.time-slot-color-indicator').addClass(`color-${data.color}`);
-                    // Set slot number to the actual slot (not 0)
-                    $row.find('.time-slot-number').val(slot);
-                }
-                if (data.description) {
-                    $row.find('.time-slot-description').val(data.description);
-                }
+
+        Object.entries(this.existingTimeSlotData).forEach(([timeSlot, data]) => {
+            const $row = $(`.time-slot-row[data-time-slot="${timeSlot}"]`);
+            if (!$row.length) return;
+
+            // ✅ availability color
+            if (data.color) {
+                $row.removeClass('color-red color-green')
+                    .addClass(`color-${data.color}`);
+
+                $row.find('.time-slot-availability').val(data.color);
+            }
+
+            // ✅ slot number
+            $row.find('.time-slot-number').val(
+                data.slot_number !== null ? data.slot_number : 0
+            );
+
+            // ✅ description
+            if (data.description) {
+                $row.find('.time-slot-description').val(data.description);
             }
         });
     }
 
-
     async saveModalChanges() {
-        if (!this.modalSelectedDate) return;
+        if (!this.modalSelectedDate) {
+            console.error('CalendarManager: No date selected for saving');
+            this.showMessage('No date selected for saving', 'error');
+            return;
+        }
+        
+        console.log('CalendarManager: Saving modal changes for Diffun branch', {
+            date: this.modalSelectedDate
+        });
         
         try {
             // Show loading state
@@ -490,7 +577,8 @@ class CalendarManager {
                 date: this.modalSelectedDate,
                 date_color: this.modalDateColor,
                 date_description: $('#dateDescriptionInput').val().trim(),
-                time_slots: {}
+                time_slots: {},
+                branch: 'diffun'  // Add branch identifier
             };
             
             console.log('Date-level data:', {
@@ -502,33 +590,28 @@ class CalendarManager {
             let timeSlotsCount = 0;
             $('.time-slot-row').each((index, row) => {
                 const $row = $(row);
-                const originalSlot = $row.data('time-slot'); // Original slot from data attribute
-                const editedSlot = parseInt($row.find('.time-slot-number').val()); // Editable slot number from input
-                const color = $row.hasClass('color-red') ? 'red' : 
-                             $row.hasClass('color-green') ? 'green' : null;
+
+                const timeSlot = $row.data('time-slot'); // fixed 1–9
+                const rawSlotNumber = parseInt($row.find('.time-slot-number').val(), 10);
+                const slotNumber = Number.isNaN(rawSlotNumber)
+                    ? 0
+                    : Math.max(0, Math.min(CalendarManager.MAX_SLOT_CAPACITY, rawSlotNumber));
+                const availability = $row.find('.time-slot-availability').val();
                 const description = $row.find('.time-slot-description').val().trim();
-                
-                // Only save slots that have a color
-                if (color) {
-                    // Use the edited slot number if it's valid and not 0
-                    // Otherwise use the original slot number
-                    let finalSlot;
-                    if (!isNaN(editedSlot) && editedSlot > 0 && editedSlot <= 24) {
-                        finalSlot = editedSlot;
-                    } else {
-                        finalSlot = originalSlot;
-                    }
-                    
-                    saveData.time_slots[finalSlot] = {
-                        color: color,
-                        description: description
+
+                // Save configured availability selections and preserve existing rows
+                // so bulk "Not Available" updates with slot_number 0 are persisted.
+                const hasValidSlot = ((availability === 'green' || availability === 'red')) || 
+                                    (this.existingTimeSlotData && this.existingTimeSlotData[timeSlot]);
+
+                if (hasValidSlot) {
+                    saveData.time_slots[timeSlot] = {
+                        time_slot: timeSlot,
+                        slot_number: slotNumber,
+                        color: availability,
+                        description: description || null
                     };
                     timeSlotsCount++;
-                    
-                    console.log(`Time slot ${originalSlot} -> ${finalSlot}:`, {
-                        color: color,
-                        description: description
-                    });
                 }
             });
             
@@ -546,12 +629,20 @@ class CalendarManager {
                 return;
             }
             
-            // Save data
+            const selectedOfficeId = $('#adminOfficeSelector').val() || window.currentUser?.law_office_id;
+            if (!selectedOfficeId && window.currentUser?.role && ['admin', 'superadmin'].includes(window.currentUser.role)) {
+                this.showMessage('Please select a law office from the dropdown before setting availability.', 'error');
+                $('#saveModalChanges').prop('disabled', false).html('Save Changes');
+                return;
+            }
+
+            // Save data - Use current office endpoint
             const response = await $.ajax({
                 url: '/calendar/save-date-data',
                 method: 'POST',
                 data: {
                     ...saveData,
+                    office_id: selectedOfficeId,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 dataType: 'json'
@@ -668,8 +759,12 @@ class CalendarManager {
         
         // Add specific styling for past dates
         this.stylePastDates();
+        
+        // Initialize tooltips for ALL dates immediately (don't wait for loadMonthColors)
+        this.initializeTooltips();
     }
-        stylePastDates() {
+    
+    stylePastDates() {
         $('.day-cell.past-date').each(function() {
             const $cell = $(this);
             
@@ -689,7 +784,7 @@ class CalendarManager {
         });
     }
     
-  createDayCell(day, date, isOtherMonth) {
+    createDayCell(day, date, isOtherMonth) {
         const yyyy = date.getFullYear();
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
@@ -727,117 +822,122 @@ class CalendarManager {
     }
 
     async loadMonthColors() {
-    const month = this.currentDate.toISOString().substring(0, 7);
+        const month = this.currentDate.toISOString().substring(0, 7);
+        
+        console.log("🔄 Loading month colors for:", month, "Office:", this.officeId);
     
-    console.log("🔄 Loading month colors for:", month);
-
-    try {
-        const response = await $.get(`/calendar/month/colors?month=${month}`);
-        console.log("📦 Month Colors API Response:", response);
-
-        // Clear all colors first
-        $('.day-cell')
-            .removeClass('has-color color-red color-orange color-green')
-            .css('background-color', '')
-            .css('color', '')
-            .removeAttr('data-description');
-
-        let colors = {};
-        
-        if (response && typeof response === 'object') {
-            if (response.status === "success" && response.data) {
-                colors = response.data;
-                console.log("✅ Using new API response structure");
-            } else if (!response.status && Object.keys(response).length > 0) {
-                colors = response;
-                console.log("✅ Using direct API response structure");
-            } else if (response.data) {
-                colors = response.data;
-                console.log("✅ Using data property from response");
+        try {
+            let url = `/calendar/month/colors?month=${month}`;
+            if (this.officeId) {
+                url += `&office_id=${this.officeId}`;
             }
-        }
-
-        console.log("🎨 Colors data to apply:", colors);
-
-        if (!colors || Object.keys(colors).length === 0) {
-            console.log("💡 No color records in database for this month");
-            return;
-        }
-
-        let appliedCount = 0;
-        
-        // Apply colors from database
-        Object.entries(colors).forEach(([date, item]) => {
-            // Handle different response structures
-            let color, description;
             
-            if (typeof item === 'string') {
-                // If item is just a color string
-                color = item;
-                description = '';
-            } else if (item && typeof item === 'object') {
-                // If item is an object with color and description
-                color = item.color; // This matches the backend response structure
-                description = item.description || '';
+            const response = await $.get(url);
+            console.log("📦 Month Colors API Response:", response);
+    
+            // Clear all colors first
+            $('.day-cell')
+                .removeClass('has-color color-red color-orange color-green')
+                .css('background-color', '')
+                .css('color', '')
+                .removeAttr('data-description');
+    
+            let colors = {};
+            
+            if (response && typeof response === 'object') {
+                if (response.status === "success" && response.data) {
+                    colors = response.data;
+                    console.log("✅ Using new API response structure");
+                } else if (!response.status && Object.keys(response).length > 0) {
+                    colors = response;
+                    console.log("✅ Using direct API response structure");
+                } else if (response.data) {
+                    colors = response.data;
+                    console.log("✅ Using data property from response");
+                }
+            }
+    
+            console.log("🎨 Colors data to apply:", colors);
+    
+            if (!colors || Object.keys(colors).length === 0) {
+                console.log("💡 No color records in database for this month");
+                return;
+            }
+    
+            let appliedCount = 0;
+            
+            // Apply colors from database
+            Object.entries(colors).forEach(([date, item]) => {
+                // Handle different response structures
+                let color, description;
                 
-                // If no color, skip this date
-                if (!color) {
-                    console.log(`⚠️ No color for date: ${date}, skipping`);
+                if (typeof item === 'string') {
+                    // If item is just a color string
+                    color = item;
+                    description = '';
+                } else if (item && typeof item === 'object') {
+                    // If item is an object with color and description
+                    color = item.color; // This matches the backend response structure
+                    description = item.description || '';
+                    
+                    // If no color, skip this date
+                    if (!color) {
+                        console.log(`⚠️ No color for date: ${date}, skipping`);
+                        return;
+                    }
+                } else {
+                    console.warn(`⚠️ Invalid color data for date: ${date}`, item);
                     return;
                 }
-            } else {
-                console.warn(`⚠️ Invalid color data for date: ${date}`, item);
-                return;
-            }
-            
-            if (!color || String(color).trim() === '') {
-                console.warn(`⚠️ Empty color for date: ${date}`);
-                return;
-            }
-
-            const $cell = $(`.day-cell[data-date="${date}"]`);
-            if ($cell.length) {
-                console.log(`🎨 Applying ${color} to ${date}`, {description});
                 
-                // Remove any existing color classes
-                $cell.removeClass('color-red color-orange color-green');
-                
-                // Add the new color class
-                $cell.addClass(`has-color color-${color}`);
-                
-                // Add description as data attribute (even if empty)
-                $cell.attr('data-description', description || '');
-                
-                // Force background color with inline style as backup
-                const colorMap = {
-                    'red': '#dc2626',
-                    'orange': '#ea580c', 
-                    'green': '#16a34a'
-                };
-                
-                if (colorMap[color]) {
-                    $cell.css('background-color', colorMap[color]);
-                    $cell.css('color', 'white');
+                if (!color || String(color).trim() === '') {
+                    console.warn(`⚠️ Empty color for date: ${date}`);
+                    return;
                 }
-                
-                appliedCount++;
-            } else {
-                console.warn(`❌ Cell not found for date: ${date}`);
-            }
-        });
-
-        console.log(`✅ Applied colors to ${appliedCount} dates`);
-
-        // Initialize tooltips after a brief delay to ensure DOM is updated
-        setTimeout(() => {
-            this.initializeTooltips();
-        }, 100);
-
-    } catch (err) {
-        console.error("❌ ERROR loading month colors:", err);
-        console.error("Error details:", err.responseJSON || err.statusText);
+    
+                const $cell = $(`.day-cell[data-date="${date}"]`);
+                if ($cell.length) {
+                    console.log(`🎨 Applying ${color} to ${date}`, {description});
+                    
+                    // Remove any existing color classes
+                    $cell.removeClass('color-red color-orange color-green');
+                    
+                    // Add the new color class
+                    $cell.addClass(`has-color color-${color}`);
+                    
+                    // Add description as data attribute (even if empty)
+                    $cell.attr('data-description', description || '');
+                    
+                    // Force background color with inline style as backup
+                    const colorMap = {
+                        'red': '#dc2626',
+                        'orange': '#ea580c', 
+                        'green': '#16a34a'
+                    };
+                    
+                    if (colorMap[color]) {
+                        $cell.css('background-color', colorMap[color]);
+                        $cell.css('color', 'white');
+                    }
+                    
+                    appliedCount++;
+                } else {
+                    console.warn(`❌ Cell not found for date: ${date}`);
+                }
+            });
+    
+            console.log(`✅ Applied colors to ${appliedCount} dates`);
+    
+            // Initialize tooltips after a brief delay to ensure DOM is updated
+            setTimeout(() => {
+                this.initializeTooltips();
+            }, 100);
+    
+        } catch (err) {
+            console.error("❌ ERROR loading month colors:", err);
+            console.error("Error details:", err.responseJSON || err.statusText);
+        }
     }
-}
 
     // WEEK VIEW FUNCTIONS
     
@@ -939,11 +1039,13 @@ class CalendarManager {
             console.log('Loading week data for date range:', {
                 start: startDateStr,
                 end: this.formatDate(endOfWeek),
-                currentDate: this.formatDate(this.currentDate)
+                currentDate: this.formatDate(this.currentDate),
+                officeId: this.officeId
             });
             
             const response = await $.get('/calendar/week/load-data', {
-                date: startDateStr
+                date: startDateStr,
+                office_id: this.officeId
             });
             console.log('Week data response:', response);
             
@@ -1095,17 +1197,26 @@ class CalendarManager {
 
     // TOOLTIP FUNCTIONALITY
     initializeTooltips() {
-        console.log('Initializing tooltips...');
+        console.log('Diffun Calendar: Initializing tooltips for all dates...');
         
-        // Remove existing tooltip event listeners
+        // Clean up ALL existing tooltips first
+        this.cleanupAllTooltips();
+        
+        // Remove existing tooltip event listeners from ALL elements first
         $('.day-cell, .time-slot').off('mouseenter mouseleave mousemove');
         
         // Store reference to 'this' for use in event handlers
         const self = this;
         
-        // Add tooltip functionality to day cells and time slots
-        $('.day-cell, .time-slot').on('mouseenter', function(e) {
+        // Add tooltip functionality to ALL day cells (including past dates for tooltips)
+        $('.day-cell').on('mouseenter', function(e) {
             const $element = $(this);
+            
+            // Don't create tooltip if one already exists for this element
+            if ($element.data('tooltip-active')) {
+                return;
+            }
+            
             let description = $element.attr('data-description');
             
             // If no description, show "Not set yet"
@@ -1122,18 +1233,57 @@ class CalendarManager {
             self.positionTooltip($element, tooltip, e);
             
             $element.data('tooltip', tooltip);
+            $element.data('tooltip-active', true);
+            
+            // Track active tooltip
+            self.activeTooltips.add({
+                element: $element,
+                tooltip: tooltip
+            });
             
         }).on('mouseleave', function() {
             const tooltip = $(this).data('tooltip');
             if (tooltip) {
                 tooltip.remove();
                 $(this).removeData('tooltip');
+                $(this).removeData('tooltip-active');
+                
+                // Remove from active set
+                self.activeTooltips.forEach(item => {
+                    if (item.element.is($(this))) {
+                        self.activeTooltips.delete(item);
+                    }
+                });
             }
         }).on('mousemove', function(e) {
             const tooltip = $(this).data('tooltip');
             if (tooltip) {
                 const $element = $(this);
                 self.positionTooltip($element, tooltip, e);
+            }
+        });
+        
+        console.log('Diffun Calendar: Tooltips initialized for', $('.day-cell').length, 'day cells');
+    }
+    
+    cleanupAllTooltips() {
+        console.log('Diffun Calendar: Cleaning up all tooltips', this.activeTooltips.size);
+        
+        // Remove all tooltip elements
+        $('.calendar-tooltip').remove();
+        
+        // Remove tooltip data from all day cells
+        $('.day-cell').removeData('tooltip').removeData('tooltip-active');
+        
+        // Clear the active set
+        this.activeTooltips.clear();
+        
+        // Also remove any Bootstrap tooltips
+        $('[data-bs-toggle="tooltip"]').each(function() {
+            const bsTooltip = bootstrap.Tooltip.getInstance(this);
+            if (bsTooltip) {
+                bsTooltip.hide();
+                bsTooltip.dispose();
             }
         });
     }
@@ -1289,56 +1439,116 @@ class CalendarManager {
             year: 'numeric'
         });
     }
+    
+    fixDropdownOverflow() {
+        // Monitor dropdown changes and adjust text if needed
+        $(document).on('change', '.time-slot-availability', function() {
+            const $select = $(this);
+            const selectedText = $select.find('option:selected').text();
+            
+            // Check if text might overflow
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = window.getComputedStyle($select[0]).font;
+            const textWidth = context.measureText(selectedText).width;
+            const selectWidth = $select.width() - 40; // Account for dropdown arrow
+            
+            // If text is too long, show abbreviated version with title
+            if (textWidth > selectWidth) {
+                $select.attr('title', selectedText);
+                // Optionally abbreviate the displayed text
+                // This is optional - CSS ellipsis should handle it
+            } else {
+                $select.removeAttr('title');
+            }
+        });
+        
+        // Initialize on modal open
+        $(document).on('shown.bs.modal', '#colorSelectionModal', () => {
+            $('.time-slot-availability').each(function() {
+                const $select = $(this);
+                const selectedText = $select.find('option:selected').text();
+                if (selectedText) {
+                    $select.attr('title', selectedText);
+                }
+            });
+        });
+    }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 // Initialize calendar when document is ready
 $(document).ready(function() {
     const calendar = new CalendarManager();
     
-    // Sidebar toggle functionality
-    document.getElementById('menu-toggle').addEventListener('click', function() {
-        document.getElementById('wrapper').classList.toggle('toggled');
-    });
-
-    // Close other submenus when opening a new one
-    const menuItems = document.querySelectorAll('.list-group-item[data-bs-toggle="collapse"]');
-    menuItems.forEach(item => {
-        item.addEventListener('click', function() {
-            const targetId = this.getAttribute('href');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
-            if (isExpanded) return;
-            
-            menuItems.forEach(otherItem => {
-                if (otherItem !== this) {
-                    const otherTargetId = otherItem.getAttribute('href');
-                    const otherTarget = document.querySelector(otherTargetId);
-                    if (otherTarget && otherTarget.classList.contains('show')) {
-                        const bsCollapse = new bootstrap.Collapse(otherTarget);
-                        bsCollapse.hide();
-                    }
-                }
-            });
-        });
-    });
-
-    // Set active menu item on click
-    const allMenuItems = document.querySelectorAll('.list-group-item');
-    allMenuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            if (this.hasAttribute('data-bs-toggle') && 
-                this.getAttribute('data-bs-toggle') === 'collapse') {
-                return;
-            }
-            
-            allMenuItems.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    console.log('Calendar manager initialized');
-    console.log('CSRF Token:', $('meta[name="csrf-token"]').attr('content'));
-    
-    // Debug functions - can be called from browser console
+    // Make calendar globally accessible
     window.calendarManager = calendar;
+    
+    // Store calendar by branch
+    window.calendars = {
+        diffun: calendar,
+        cordon: window.cordonCalendar
+    };
+    
+    // View tabs
+    $('.view-tab').on('click', (e) => {
+        const view = $(e.currentTarget).data('view');
+        
+        // Update tabs
+        $('.view-tab').removeClass('active');
+        $(e.currentTarget).addClass('active');
+        
+        // Show/hide views
+        $('.view-pane').hide();
+        
+        if (view === 'cordon') {
+            $('#cordonView').show();
+            if (window.cordonCalendar) {
+                window.cordonCalendar.loadCordonMonthView();
+            }
+        } else {
+            $('#monthView').show();
+            calendar.switchView(view);
+        }
+    });
+    
+    // Common modal save handler with branch detection
+    $('#saveModalChanges').off('click').on('click', function() {
+        const branch = $(this).data('branch');
+        
+        if (branch === 'cordon' && window.cordonCalendar) {
+            window.cordonCalendar.saveCordonModalChanges();
+        } else if (window.calendarManager) {
+            window.calendarManager.saveModalChanges();
+        } else {
+            console.error('No calendar manager found for branch:', branch);
+            alert('Error: Calendar system not properly initialized.');
+        }
+    });
+    
+    // Clear branch data when modal closes
+    $('#colorSelectionModal').on('hidden.bs.modal', function() {
+        $('#saveModalChanges').removeData('branch');
+        
+        // Clear modal inputs
+        $('#dateDescriptionInput').val('');
+        $('#timeSlotsTableBody').empty();
+        
+        // Reset color selections
+        $('.modal-color-option').removeClass('selected');
+        $('.time-slot-row').removeClass('selected');
+    });
+    
+    // Sidebar toggle functionality
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+            document.getElementById('wrapper').classList.toggle('toggled');
+        });
+    }
+    
+    console.log('Calendar managers initialized:', {
+        diffun: !!window.calendarManager,
+        cordon: !!window.cordonCalendar
+    });
 });

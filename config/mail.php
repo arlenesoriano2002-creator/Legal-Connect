@@ -39,10 +39,17 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            // Support legacy "ssl" value by mapping it to "smtps" which is accepted by the mailer
+            'scheme' => (function () {
+                $enc = env('MAIL_ENCRYPTION', '');
+                if (is_string($enc) && strtolower($enc) === 'ssl') {
+                    return 'smtps';
+                }
+                return $enc;
+            })(),
             'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
+            'port' => env('MAIL_PORT', 465),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
@@ -109,8 +116,9 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        // Prefer MAIL_FROM_ADDRESS; if missing fall back to MAIL_USERNAME (common for SMTP providers)
+        'address' => env('MAIL_FROM_ADDRESS', env('MAIL_USERNAME', 'hello@example.com')),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'LegalConnect')),
     ],
 
 ];

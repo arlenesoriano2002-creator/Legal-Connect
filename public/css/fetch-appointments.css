@@ -31,7 +31,7 @@ html, body {
 }
 
 .sidebar-heading {
-    padding: 20px 15px;
+    padding: 10px;
     background: rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 18px;
@@ -41,6 +41,15 @@ html, body {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-heading img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .list-group-item {
@@ -50,9 +59,10 @@ html, body {
     padding: 12px 15px;
     border-left: 4px solid transparent;
     text-decoration: none;
-    display: block;
-    width: 100%;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
 }
 
 .list-group-item:hover, .list-group-item:focus {
@@ -71,6 +81,7 @@ html, body {
     margin-right: 10px;
     width: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .list-group-item .fa-chevron-down {
@@ -78,6 +89,7 @@ html, body {
     margin-top: 5px;
     font-size: 12px;
     transition: transform 0.3s;
+    margin-left: auto;
 }
 
 .list-group-item[aria-expanded="true"] .fa-chevron-down {
@@ -87,19 +99,35 @@ html, body {
 .submenu {
     padding-left: 30px;
     background: #293846;
+    
 }
 
 .submenu .list-group-item {
     padding: 8px 15px;
     font-size: 13px;
 }
+/* Ensure submenu stays visible when expanded */
+.submenu.show {
+    display: block !important;
+}
 
+/* Prevent any interference with Bootstrap collapse */
+.collapse:not(.show) {
+    display: none;
+}
+
+.collapsing {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+}
 /* Page Content */
 #page-content-wrapper {
-    width: calc(100% - 220px);
-    margin-left: 220px;
-    padding: 0;
-    transition: all 0.3s;
+  width: calc(100% - 220px);
+  margin-left: 220px;
+  padding: 0;
+  transition: all 0.3s;
+  margin-top: 60px; /* Add margin to prevent content from hiding under fixed bar */
 }
 
 /* Toggle Button */
@@ -124,25 +152,48 @@ html, body {
 }
 
 #wrapper.toggled #page-content-wrapper {
-    width: calc(100% - 70px);
-    margin-left: 70px;
+  width: calc(100% - 70px);
+  margin-left: 70px;
 }
 
-#wrapper.toggled .sidebar-heading,
-#wrapper.toggled .list-group-item span:not(.fa) {
+/* Keep the logo visible when sidebar is collapsed */
+#wrapper.toggled .sidebar-heading {
+    padding: 15px 0;
+    justify-content: center;
+    height: auto;
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none; /* Hide the text "LegalConnect" */
+}
+
+#wrapper.toggled .sidebar-heading img {
+    margin: 0;
+    display: block; /* Ensure logo is visible */
+}
+
+/* Hide text labels and chevrons when collapsed */
+#wrapper.toggled .list-group-item span {
+    display: none;
+}
+
+#wrapper.toggled .list-group-item .fa-chevron-down {
     display: none;
 }
 
 #wrapper.toggled .list-group-item {
     text-align: center;
     padding: 15px 10px;
+    justify-content: center;
 }
 
 #wrapper.toggled .list-group-item i {
     margin-right: 0;
     font-size: 18px;
+    display: block;
 }
 
+/* Hide submenus when collapsed */
 #wrapper.toggled .submenu {
     display: none !important;
 }
@@ -165,34 +216,40 @@ main {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
-    #sidebar-wrapper {
-        width: 70px;
-    }
-    
-    #page-content-wrapper {
-        width: calc(100% - 70px);
-        margin-left: 70px;
-    }
-    
-    .sidebar-heading,
-    .list-group-item span:not(.fa) {
-        display: none;
-    }
-    
-    .list-group-item {
-        text-align: center;
-        padding: 15px 10px;
-    }
-    
-    .list-group-item i {
-        margin-right: 0;
-        font-size: 18px;
-    }
-    
-    .submenu {
-        display: none !important;
-    }
+  .top-bar {
+    left: 70px;
+  }
+  
+  #page-content-wrapper {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+    margin-top: 60px;
+  }
 }
+
+@media (max-width: 640px) {
+  .top-bar {
+    left: 0;
+    right: 0;
+  }
+  
+  #page-content-wrapper {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 60px;
+  }
+  
+  #wrapper.toggled .top-bar {
+    left: 220px;
+  }
+  
+  #wrapper.toggled #page-content-wrapper {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    margin-top: 60px;
+  }
+}
+
 
 @media (max-width: 640px) {
     #sidebar-wrapper {
@@ -213,22 +270,67 @@ main {
         margin-left: 220px;
     }
     
-    #wrapper.toggled .sidebar-heading,
-    #wrapper.toggled .list-group-item span:not(.fa) {
+    /* Show text labels when sidebar is expanded on mobile */
+    #wrapper.toggled .sidebar-heading span {
+        display: inline;
+    }
+    
+    #wrapper.toggled .list-group-item span {
+        display: inline;
+    }
+    
+    #wrapper.toggled .list-group-item {
+        text-align: left;
+        justify-content: flex-start;
+    }
+    
+    #wrapper.toggled .list-group-item i {
+        margin-right: 10px;
+    }
+}
+
+/* Hide sidebar inner content when sidebar is collapsed/hidden on small screens */
+@media (max-width: 640px) {
+    /* Ensure the sidebar element itself is clipped */
+    #sidebar-wrapper { overflow: hidden; }
+
+    /* When not toggled (sidebar closed), hide inner content to prevent it showing */
+
+    /* Hide list and heading content when sidebar is effectively closed (width:0) */
+    #sidebar-wrapper .list-group,
+    #sidebar-wrapper .sidebar-heading img,
+    #sidebar-wrapper .sidebar-heading span,
+    #sidebar-wrapper .close-btn {
+        display: none;
+    }
+
+    /* When wrapper has toggled class (sidebar open), show children */
+    #wrapper.toggled #sidebar-wrapper .list-group,
+    #wrapper.toggled #sidebar-wrapper .sidebar-heading img,
+    #wrapper.toggled #sidebar-wrapper .sidebar-heading span,
+    #wrapper.toggled #sidebar-wrapper .close-btn {
         display: block;
     }
 }
 
 /* Top bar styles */
 .top-bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 220px; /* Account for sidebar width */
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #f9f9f9;
   padding: 10px 20px;
-  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 60px; /* Fixed height */
 }
-
+#wrapper.toggled .top-bar {
+  left: 70px; /* Account for collapsed sidebar width */
+}
 .nav-logo {
   display: flex;
   align-items: center;
@@ -278,6 +380,35 @@ main {
 .table-responsive {
     position: relative;
     min-height: 200px;
+}
+
+/* Make tables horizontally scrollable on small screens so content remains visible */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevent wrapping so columns remain aligned; allow horizontal scroll */
+    .appointments-table table,
+    .appointments-table thead,
+    .appointments-table tbody,
+    .appointments-table th,
+    .appointments-table td {
+        white-space: nowrap;
+    }
+
+    /* Reduce padding to fit more content on narrow screens */
+    .appointments-table th,
+    .appointments-table td {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    /* Ensure the table has a minimum width to allow horizontal scrolling */
+    .appointments-table table {
+        min-width: 900px;
+    }
 }
 
 .loading-spinner {
@@ -374,7 +505,8 @@ main {
         .dashboard-container {
             padding: 20px;
             width: 100%;
-        }
+            margin-top: 20px; /* Push content down below fixed top bar */
+            }
         
         /* Custom styles for appointments page */
         .table-responsive {
@@ -667,3 +799,483 @@ main {
         background-color: inherit !important;
         color: inherit !important;
     }
+/* Modal header adjustments to accommodate filter */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#logoutConfirmationModal .title-header {
+    align-items: center !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-top-left-radius: calc(0.3rem - 1px) !important;
+    border-top-right-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    padding: 1rem !important;
+}
+.modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: calc(var(--bs-modal-padding) - var(--bs-modal-footer-gap) * .5);
+    background-color: var(--bs-modal-footer-bg);
+    border-top: var(--bs-modal-footer-border-width) solid var(--bs-modal-footer-border-color);
+    border-bottom-right-radius: var(--bs-modal-inner-border-radius);
+    border-bottom-left-radius: var(--bs-modal-inner-border-radius);
+}
+#logoutConfirmationModal .modal-content {
+    background-color: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    display: block !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    width: 800px !important;
+}
+.text-gray-900{
+    border: solid 1px black !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
+}
+/* Backup Logs Modal Styles */
+.backup-logs-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.backup-log-item {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.backup-log-item:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateX(5px);
+}
+
+.backup-log-item.active {
+    background: #e3f2fd;
+    border-color: #0d6efd;
+    border-left: 4px solid #0d6efd;
+}
+
+.backup-log-info {
+    flex: 1;
+}
+
+.backup-log-name {
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: #212529;
+}
+
+.backup-log-details {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.backup-log-type {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.backup-log-type.pdf {
+    background: #ffe8e8;
+    color: #dc3545;
+}
+
+.backup-log-type.csv {
+    background: #e8f4e8;
+    color: #198754;
+}
+
+.backup-log-type.sql {
+    background: #e8f0fe;
+    color: #0d6efd;
+}
+
+.backup-log-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.backup-log-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.backup-log-btn:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.backup-log-btn.view {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.backup-log-btn.view:hover {
+    background: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* PDF Preview Styles */
+.pdf-preview-container {
+    min-height: 400px;
+}
+
+/* CSV Preview Styles */
+.csv-preview-container {
+    min-height: 400px;
+}
+
+#csvPreviewTable {
+    font-size: 0.85rem;
+}
+
+#csvPreviewTable th {
+    background: #f8f9fa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.csv-empty-message {
+    text-align: center;
+    color: #6c757d;
+    padding: 2rem;
+    font-style: italic;
+}
+
+   .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        .btn-success:hover {
+            background-color: #157347;
+            border-color: #146c43;
+        }
+        
+        /* ============================= */
+        /* 🔹 NOTIFICATION STYLES 🔹 */
+        /* ============================= */
+        .notification-container {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #333;
+            position: relative;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-btn:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff4757;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            font-weight: bold;
+            border: 2px solid #f9f9f9;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 400px;
+            max-width: 90vw;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e0e0e0;
+            display: none;
+            z-index: 9999;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .notification-actions .btn-link {
+            padding: 2px 6px;
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+            border: 1px solid  #666; 
+            border-radius: 4px;
+        }
+
+        .notification-actions .btn-link:hover {
+            color: #007bff;
+            border-color: #007bff;
+            text-decoration: none;
+        }
+
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .notification-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .notification-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .notification-empty p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background-color: #f0f7ff;
+            border-left: 3px solid #007bff;
+        }
+
+        .notification-item.unread:hover {
+            background-color: #e6f2ff;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .notification-message {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .notification-time {
+            color: #999;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-time i {
+            font-size: 10px;
+        }
+
+        .notification-actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .notification-actions-row .btn {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .notification-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        /* Scrollbar styling for notification list */
+        .notification-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .notification-dropdown {
+                width: 320px;
+                right: -50px;
+            }
+            
+            .notification-item {
+                padding: 12px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .notification-dropdown {
+                width: 280px;
+                right: -80px;
+            }
+            
+            .notification-container {
+                margin-right: 8px;
+            }
+        }
+
+/* Added: Sidebar close button styles (mobile only) */
+.close-btn { align-self: flex-start; display: none; }
+.sidebar-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 6px;
+    color: #fff;
+    transition: background-color .12s ease, transform .08s ease, color .12s ease;
+}
+.sidebar-close-btn:hover { background: rgba(255,255,255,0.08); color: #fff; transform: translateY(-1px); }
+.sidebar-close-btn:active { transform: translateY(0); }
+@media (max-width: 640px) { .close-btn { display: block; } }
+
+/* Keep top-bar always flush on mobile to avoid empty navbar spaces */
+@media (max-width: 640px) {
+    .top-bar { left: 0 !important; right: 0 !important; }
+}
+
+/* End of additions */

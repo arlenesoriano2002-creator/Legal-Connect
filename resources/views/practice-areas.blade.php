@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -37,6 +37,10 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
+                <a href="{{ route('admin.walkins') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.walkins') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clipboard" style="color: #cdd3df;"></i>
+                    <span>Walk-Ins logs</span>
+                </a>
                 <a href="#messagesSubmenu" 
                 class="list-group-item list-group-item-action {{ request()->is('email-chat') || request()->is('messages/*') ? 'active' : '' }}"
                 data-bs-toggle="collapse" 
@@ -50,18 +54,18 @@
                         <i class="fas fa-envelope"></i>
                         <span>Email</span>
                     </a>
-                    <a href="{{ route('messages.sms') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ route('messages.sms') }}" class="list-group-item list-group-item-action {{ request()->is('sms-chat') ? 'active' : '' }}">
                         <i class="fas fa-sms"></i>
                         <span>SMS</span>
                     </a>
-                    <a href="{{ route('messages.system-chat') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ route('admin.system-chat') }}" class="list-group-item list-group-item-action {{ request()->is('admin/system-chat') ? 'active' : '' }}">
                         <i class="fas fa-comments"></i>
                         <span>System Chatting</span>
                     </a>
                 </div>
                 <a href="{{ url('/practice-areas') }}" class="list-group-item list-group-item-action {{ request()->is('practice-areas') ? 'active' : '' }}">
                     <i class="fa-solid fa-suitcase"></i>
-                    <span>Practice Areas</span>
+                    <span>Services</span>
                 </a>
                 <a href="#requestsSubmenu" class="list-group-item list-group-item-action" data-bs-toggle="collapse" aria-expanded="false">
                     <i class="fas fa-list-alt"></i>
@@ -84,8 +88,13 @@
                 </div>
 
                 <a href="{{ url('/adminAccount') }}" class="list-group-item list-group-item-action {{ request()->is('adminAccount') ? 'active' : '' }}">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>All Staff Accounts</span>
+                </a>
+                <a href="{{ route('admin.account.settings') }}"
+                class="list-group-item list-group-item-action {{ request()->routeIs('admin.account.settings') ? 'active' : '' }}">
                     <i class="fas fa-user-cog"></i>
-                    <span>All Accounts</span>
+                    <span>Account Setting</span>
                 </a>
             </div>
         </div>
@@ -99,21 +108,53 @@
                 
                 <div class="top-bar-spacer"></div>
 
-                <!-- Log Out -->
+                <!-- notification dropdown-->
+                <div class="notification-container">
+                    <button class="notification-btn" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notificationBadge">0</span>
+                    </button>
+                    
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h4>Appointment Request Notifications</h4>
+                            <div class="notification-actions">
+                                <button class="btn btn-sm btn-link" id="markAllReadBtn">Mark all as read</button>
+                                <button class="btn btn-sm btn-link" onclick="refreshNotifications()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-list" id="notificationList">
+                            <div class="notification-empty">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No new notifications</p>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-footer">
+                            <a href="{{ route('clientstbl') }}" class="btn btn-sm btn-primary w-100">
+                                View All Pending Requests
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="logout-form" action="{{ route('custom.logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
-                <button type="button" class="btn logout-btn" aria-label="Log out" onclick="document.getElementById('logout-form').submit();">
-                    <i class="fas fa-sign-out-alt"></i> Log out
-                </button>
+                    <button type="button" class="btn logout-btn" onclick="showLogoutModal()">
+                        <i class="fas fa-sign-out-alt"></i> Log out
+                    </button>
             </nav>
             
             <!-- Practice Areas Content -->
             <div class="practice-areas-container">
                 <div class="page-header">
                     <div class="description-page">
-                        <h1 class="page-title">Practice Areas Management</h1>
-                        <p>Organizing, viewing, and updating legal practice categories and their case types.</p>
+                        <h1 class="page-title">Services Management</h1>
+                        <p>Organizing, viewing, and updating legal services categories and their case types.</p>
                     </div>
                     <button type="button" class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#manageCategoriesModal">
                         <i class="fas fa-plus"></i> Manage Categories
@@ -133,7 +174,7 @@
                                 <div class="cases-list">
                                     @foreach($casesByCategory[$category->category]->take(3) as $case)
                                         <div class="case-item">
-                                            <span>{{ $case->case_name }}</span>
+                                            <span class="case-name">{{ $case->case_name }}</span>
                                         </div>
                                     @endforeach
                                     @if($category->case_count > 3)
@@ -190,8 +231,31 @@
                                 @csrf
                                 <div class="form-group">
                                     <label class="form-label">Category Name</label>
-                                    <input type="text" class="form-control" name="category" required placeholder="e.g., Criminal Law, Civil Law">
+                                    <input type="text" class="form-control" name="category" id="categoryName" required placeholder="e.g., Criminal Law, Civil Law">
                                 </div>
+                                
+                                <!-- Cases Section -->
+                                <div class="form-group mt-4">
+                                    <label class="form-label">Add Cases (Optional)</label>
+                                    <div id="casesContainer">
+                                        <div class="case-input-group mb-2">
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-md-10">
+                                                    <input type="text" class="form-control case-input" placeholder="Case name" maxlength="255">
+                                                </div>
+                                                <div class="col-md-2 d-grid">
+                                                    <button type="button" class="btn btn-outline-danger" onclick="removeCaseInput(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addCaseInput()">
+                                        <i class="fas fa-plus"></i> Add Another Case
+                                    </button>
+                                </div>
+                                
                                 <button type="submit" class="btn btn-primary-custom w-100">
                                     <i class="fas fa-plus"></i> Add Category
                                 </button>
@@ -327,6 +391,62 @@
             </div>
         </div>
     </div>
+     <!-- Bootstrap Modal for Logout Confirmation -->
+    <!-- Generic Confirm Delete Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmDeleteMessage">Are you sure you want to delete this item?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="modal fade" id="logoutConfirmationModal" tabindex="-1" aria-labelledby="logoutModalLabel">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="title-header">
+                        <h5 class="modal-title" id="logoutModalLabel">
+                            <i class="fas fa-sign-out-alt me-2"></i>Confirm Logout
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <center>
+                    <div class="content-modal">
+                        <div style="font-size: 48px; color: #ffc107; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                       
+                        <h4 class="mb-3">Confirm Logout</h4>
+                        <p>Are you sure you want to log out?<br>You will be redirected to the login page.</p>
+                    </div>
+                     </center>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt me-1"></i> Log Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Success Toast -->
     <div class="toast align-items-center text-white bg-success border-0" id="successToast" role="alert">
@@ -341,20 +461,30 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.getElementById('menu-toggle');
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    document.getElementById('wrapper').classList.toggle('toggled');
-                });
-            }
-            
             // Toast initialization
             const toast = new bootstrap.Toast(document.getElementById('successToast'));
             
             // Add Category Form
             document.getElementById('addCategoryForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const formData = new FormData(this);
+                const categoryName = document.getElementById('categoryName').value.trim();
+                
+                if (!categoryName) {
+                    alert('Please enter a category name');
+                    return;
+                }
+                
+                const cases = collectCaseEntries();
+                if (cases === null) {
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('category', categoryName);
+                formData.append('_token', '{{ csrf_token() }}');
+                cases.forEach((caseItem, index) => {
+                    formData.append(`cases[${index}][case_name]`, caseItem.case_name);
+                });
                 
                 fetch('{{ route("practice-areas.storeCategory") }}', {
                     method: 'POST',
@@ -368,10 +498,17 @@
                 .then(data => {
                     if (data.success) {
                         showToast('Category added successfully');
+                        document.getElementById('addCategoryForm').reset();
+                        resetCasesContainer();
                         setTimeout(() => location.reload(), 1500);
+                    } else {
+                        alert('Error creating category: ' + (data.message || 'Unknown error'));
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error creating category');
+                });
             });
             
             // Add Case Form
@@ -433,47 +570,100 @@
             const toast = new bootstrap.Toast(document.getElementById('successToast'));
             toast.show();
         }
-        
-        // Delete category
-        function deleteCategory(category) {
-            if (confirm(`Are you sure you want to delete "${category}" and all its cases?`)) {
-                fetch(`/practice-areas/category/${encodeURIComponent(category)}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast('Category deleted successfully');
-                        setTimeout(() => location.reload(), 1500);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+
+        function getCaseInputGroupHtml() {
+            return `
+                <div class="case-input-group mb-2">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-10">
+                            <input type="text" class="form-control case-input" placeholder="Case name" maxlength="255">
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button type="button" class="btn btn-outline-danger" onclick="removeCaseInput(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetCasesContainer() {
+            document.getElementById('casesContainer').innerHTML = getCaseInputGroupHtml();
+        }
+
+        function collectCaseEntries() {
+            const cases = [];
+            const caseGroups = document.querySelectorAll('#casesContainer .case-input-group');
+
+            for (const group of caseGroups) {
+                const caseNameInput = group.querySelector('.case-input');
+                const caseName = caseNameInput ? caseNameInput.value.trim() : '';
+
+                if (!caseName) {
+                    continue;
+                }
+
+                cases.push({
+                    case_name: caseName
+                });
             }
+
+            return cases;
         }
         
-        // Delete category from table
-        function deleteCategoryFromTable(category) {
-            if (confirm(`Are you sure you want to delete "${category}" and all its cases?`)) {
-                fetch(`/practice-areas/category/${encodeURIComponent(category)}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast('Category deleted successfully');
-                        document.getElementById(`category-row-${md5(category)}`).remove();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
+        // Add case input field dynamically
+        function addCaseInput() {
+            const container = document.getElementById('casesContainer');
+            const newInput = document.createElement('div');
+            newInput.innerHTML = getCaseInputGroupHtml();
+            const caseGroup = newInput.firstElementChild;
+            container.appendChild(caseGroup);
+            // Focus on the new input
+            caseGroup.querySelector('.case-input').focus();
+        }
+        
+        // Remove case input field
+        function removeCaseInput(button) {
+            const groups = document.querySelectorAll('#casesContainer .case-input-group');
+            if (groups.length === 1) {
+                const caseNameInput = groups[0].querySelector('.case-input');
+                if (caseNameInput) caseNameInput.value = '';
+                return;
             }
+
+            const group = button.closest('.case-input-group');
+            group.remove();
+        }
+        
+        // Generic prepareDelete - opens confirmation modal and stores action
+        let _pendingDelete = null;
+
+        function prepareDelete(url, method, message, onSuccess) {
+            _pendingDelete = { url, method, onSuccess };
+            const msgEl = document.getElementById('confirmDeleteMessage');
+            if (msgEl) msgEl.textContent = message;
+            const modalEl = document.getElementById('confirmDeleteModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        // Specific delete helpers that use the modal
+        function deleteCategory(category) {
+            const url = `/practice-areas/category/${encodeURIComponent(category)}`;
+            prepareDelete(url, 'DELETE', `Are you sure you want to delete "${category}" and all its cases?`, function(data) {
+                showToast('Category deleted successfully');
+                setTimeout(() => location.reload(), 1500);
+            });
+        }
+
+        function deleteCategoryFromTable(category) {
+            const url = `/practice-areas/category/${encodeURIComponent(category)}`;
+            prepareDelete(url, 'DELETE', `Are you sure you want to delete "${category}" and all its cases?`, function(data) {
+                showToast('Category deleted successfully');
+                const row = document.getElementById(`category-row-${md5(category)}`);
+                if (row) row.remove();
+            });
         }
         
         // Update category
@@ -527,11 +717,11 @@
                         cases.forEach(caseItem => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
-                                <td>${caseItem.case_name}</td>
-                                <td>${new Date(caseItem.created_at).toLocaleDateString()}</td>
+                                <td>${escapeHtml(caseItem.case_name)}</td>
+                                <td>${caseItem.created_at ? new Date(caseItem.created_at).toLocaleDateString() : 'N/A'}</td>
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-warning" onclick="editCase(${caseItem.id}, '${caseItem.case_name.replace(/'/g, "\\'")}')">
+                                        <button class="btn btn-sm btn-warning case-edit-btn">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="btn btn-sm btn-danger" onclick="deleteCase(${caseItem.id})">
@@ -540,6 +730,9 @@
                                     </div>
                                 </td>
                             `;
+                            row.querySelector('.case-edit-btn').addEventListener('click', function() {
+                                editCase(caseItem.id, caseItem.case_name);
+                            });
                             tbody.appendChild(row);
                         });
                     }
@@ -549,6 +742,7 @@
         
         // Set category for adding case
         function setAddCaseCategory(category) {
+            document.getElementById('addCaseForm').reset();
             document.getElementById('addCaseCategory').value = category;
             document.getElementById('addCaseCategoryHidden').value = category;
         }
@@ -562,25 +756,13 @@
             modal.show();
         }
         
-        // Delete case
+        // Delete case via modal
         function deleteCase(id) {
-            if (confirm('Are you sure you want to delete this case?')) {
-                fetch(`/practice-areas/case/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showToast('Case deleted successfully');
-                        setTimeout(() => location.reload(), 1500);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
+            const url = `/practice-areas/case/${id}`;
+            prepareDelete(url, 'DELETE', 'Are you sure you want to delete this case?', function(data) {
+                showToast('Case deleted successfully');
+                setTimeout(() => location.reload(), 1500);
+            });
         }
         
         // Simple MD5 function for unique IDs
@@ -667,5 +849,523 @@
                     (h4 >>> 0).toString(16).padStart(8, '0')).substr(0, 8);
         }
     </script>
+        <script>
+    // Utility functions
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function formatPhoneForDisplay(phone) {
+    if (!phone) return '';
+    
+    // Remove non-numeric characters
+    phone = phone.replace(/\D/g, '');
+    
+    if (phone.length === 10) {
+        return '(' + phone.substring(0, 3) + ') ' + phone.substring(3, 6) + '-' + phone.substring(6);
+    } else if (phone.length === 11 && phone.startsWith('0')) {
+        return '(' + phone.substring(1, 4) + ') ' + phone.substring(4, 7) + '-' + phone.substring(7);
+    } else if (phone.length === 12 && phone.startsWith('63')) {
+        return '+63 ' + phone.substring(2, 5) + ' ' + phone.substring(5, 8) + ' ' + phone.substring(8);
+    }
+    
+    return phone;
+}
+
+// Optional: Add keyboard shortcut (Ctrl+Q) for logout
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'q') {
+        e.preventDefault();
+        // Use Bootstrap's modal directly
+        const logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmationModal'));
+        logoutModal.show();
+    }
+});
+// Simplified logout modal function without aria issues
+function showLogoutModal() {
+    // Create modal instance
+    const modalElement = document.getElementById('logoutConfirmationModal');
+    
+    // Remove any aria-hidden attributes that might conflict
+    modalElement.removeAttribute('aria-hidden');
+    modalElement.setAttribute('aria-modal', 'true');
+    
+    // Use Bootstrap's modal properly
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true,
+        focus: true
+    });
+    
+    // Show modal
+    modal.show();
+    
+    // Listen for modal events to fix aria attributes
+    modalElement.addEventListener('shown.bs.modal', function() {
+        // Ensure proper accessibility
+        this.removeAttribute('aria-hidden');
+        this.setAttribute('aria-modal', 'true');
+        
+        // Focus on the cancel button
+        setTimeout(() => {
+            const cancelBtn = this.querySelector('.btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.focus();
+            }
+        }, 100);
+    });
+    
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        // When hidden, let Bootstrap handle aria-hidden
+        this.removeAttribute('aria-modal');
+    });
+}
+
+// Keyboard shortcut - use the button click instead of direct modal
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'q') {
+        e.preventDefault();
+        // Find and click the logout button
+        const logoutBtn = document.querySelector('.logout-btn[onclick*="showLogoutModal"]');
+        if (logoutBtn) {
+            logoutBtn.click();
+        } else {
+            // Fallback to calling the function directly
+            showLogoutModal();
+        }
+    }
+});
+</script>
+<script>
+// Smooth Sidebar Toggle Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const wrapper = document.getElementById('wrapper');
+    
+    if (!menuToggle || !wrapper) return;
+    
+    // Load saved state from localStorage (sidebar should be open by default)
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    const screenWidth = window.innerWidth;
+    
+    // Desktop: sidebar open by default unless saved as collapsed
+    // Tablet: sidebar collapsed by default unless saved as open
+    // Mobile: sidebar hidden by default
+    if (screenWidth > 900) { // Desktop
+        if (savedState === 'true') {
+            wrapper.classList.add('toggled');
+        }
+        // If no saved state, sidebar stays open (default)
+    } else if (screenWidth > 640) { // Tablet (900px and below, but above 640px)
+        if (savedState !== 'false') { // Default to collapsed on tablet
+            wrapper.classList.add('toggled');
+        }
+    } else { // Mobile (640px and below)
+        if (savedState === 'true') {
+            wrapper.classList.add('toggled');
+        }
+        // If no saved state, sidebar stays hidden on mobile
+    }
+    
+    // Toggle sidebar
+    menuToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Toggle the collapsed state
+        wrapper.classList.toggle('toggled');
+        
+        // Save state to localStorage
+        const isCollapsed = wrapper.classList.contains('toggled');
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+        
+        // On mobile, close sidebar when clicking outside
+        if (screenWidth <= 640 && isCollapsed) {
+            // Add click listener to close sidebar when clicking outside
+            setTimeout(() => {
+                const closeSidebarOnClick = function(e) {
+                    if (!e.target.closest('#sidebar-wrapper') && e.target !== menuToggle) {
+                        wrapper.classList.remove('toggled');
+                        localStorage.setItem('sidebarCollapsed', 'false');
+                        document.removeEventListener('click', closeSidebarOnClick);
+                    }
+                };
+                
+                // Add listener after a short delay to avoid immediate trigger
+                setTimeout(() => {
+                    document.addEventListener('click', closeSidebarOnClick);
+                }, 100);
+            }, 10);
+        }
+    });
+    
+    // Handle responsive behavior on resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const width = window.innerWidth;
+            const savedState = localStorage.getItem('sidebarCollapsed');
+            
+            if (width > 900) { // Desktop
+                if (savedState === 'true') {
+                    wrapper.classList.add('toggled');
+                } else {
+                    wrapper.classList.remove('toggled');
+                }
+            } else if (width > 640) { // Tablet
+                if (savedState !== 'false') {
+                    wrapper.classList.add('toggled');
+                } else {
+                    wrapper.classList.remove('toggled');
+                }
+            } else { // Mobile
+                if (savedState === 'true') {
+                    wrapper.classList.add('toggled');
+                } else {
+                    wrapper.classList.remove('toggled');
+                }
+            }
+        }, 250);
+    });
+});
+
+// Notification System Functions
+function initializeNotificationSystem() {
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    
+    // Toggle notification dropdown
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('show');
+            // If dropdown opened, immediately hide badge and mark as read (user viewed notifications)
+            if (notificationDropdown.classList.contains('show')) {
+                try {
+                    // Visual hide immediately
+                    updateNotificationBadge(0);
+                } catch (err) {
+                    console.error('updateNotificationBadge not available', err);
+                }
+                try {
+                    // Mark all as read on server (non-blocking)
+                    markAllNotificationsAsRead();
+                } catch (err) {
+                    console.error('markAllNotificationsAsRead not available', err);
+                }
+            }
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (notificationBtn && notificationDropdown &&
+            !notificationBtn.contains(e.target) && 
+            !notificationDropdown.contains(e.target)) {
+            notificationDropdown.classList.remove('show');
+        }
+    });
+    
+    // Mark all as read
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            markAllNotificationsAsRead();
+        });
+    }
+    
+    // Initialize notification system
+    loadNotifications();
+    
+    // Real-time polling every 10 seconds
+    setInterval(() => {
+        if (!notificationDropdown.classList.contains('show')) {
+            fetch('/admin/notifications/count')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const currentCount = parseInt(document.getElementById('notificationBadge').textContent);
+                        if (data.unread_count > currentCount) {
+                            loadNotifications();
+                        }
+                        updateNotificationBadge(data.unread_count);
+                    }
+                })
+                .catch(error => {
+                    console.error('Real-time polling error:', error);
+                });
+        }
+    }, 10000); // 10 seconds
+}
+
+function loadNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    fetch('/admin/notifications/unread')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                updateNotificationBadge(data.unread_count);
+                renderNotifications(data.notifications);
+            } else {
+                console.error('Notification error:', data.error || 'Unknown error');
+                showFallbackNotifications();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            showFallbackNotifications();
+        });
+}
+
+function updateNotificationBadge(count) {
+    const notificationBadge = document.getElementById('notificationBadge');
+    if (notificationBadge) {
+        notificationBadge.textContent = count;
+        notificationBadge.style.display = count > 0 ? 'block' : 'none';
+    }
+}
+
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        return 'Recently';
+    }
+    
+    const seconds = Math.floor((now - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
+    
+    return 'Just now';
+}
+
+function renderNotifications(notifications) {
+    const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    if (!notifications || notifications.length === 0) {
+        notificationList.innerHTML = `
+            <div class="notification-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No new notifications</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    notifications.forEach(notification => {
+        const timeAgo = formatTimeAgo(notification.created_at);
+        const isUnread = !notification.is_read;
+        
+        // Determine icon and redirect URL based on notification type
+        let iconClass = 'fas fa-calendar-plus';
+        let redirectUrl = '{{ route("clientstbl") }}';
+        let seeMoreText = 'See More';
+        
+        if (notification.type === 'message') {
+            switch (notification.icon_type) {
+                case 'envelope':
+                    iconClass = 'fas fa-envelope';
+                    seeMoreText = 'View Email';
+                    break;
+                case 'sms':
+                    iconClass = 'fas fa-sms';
+                    seeMoreText = 'View SMS';
+                    break;
+                case 'comments':
+                    iconClass = 'fas fa-comments';
+                    seeMoreText = 'View Chat';
+                    break;
+                default:
+                    iconClass = 'fas fa-comments';
+                    seeMoreText = 'View Message';
+                    break;
+            }
+            redirectUrl = notification.redirect_url;
+        }
+        
+        html += `
+            <div class="notification-item ${isUnread ? 'unread' : ''}" 
+                 data-id="${notification.id}" 
+                 onclick="markNotificationAsRead('${notification.id}', this)">
+                <div class="notification-icon">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${escapeHtml(notification.title)}</div>
+                    <div class="notification-message">${escapeHtml(notification.message)}</div>
+                    <div class="notification-time">
+                        <i class="far fa-clock"></i>
+                        ${timeAgo}
+                    </div>
+                    <div class="notification-actions-row">
+                        <button class="btn btn-sm btn-outline-primary see-more-btn" 
+                                onclick="event.stopPropagation(); window.location.href='${redirectUrl}'">
+                            <i class="fas fa-external-link-alt"></i> ${seeMoreText}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    notificationList.innerHTML = html;
+}
+
+function showFallbackNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    if (notificationList) {
+        notificationList.innerHTML = `
+            <div class="notification-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Unable to load notifications</p>
+                <small>Please check your connection</small>
+            </div>
+        `;
+    }
+}
+
+// Mark notification as read
+function markNotificationAsRead(id, element) {
+    fetch(`/admin/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (element) {
+                element.classList.remove('unread');
+            }
+            updateNotificationBadge(data.unread_count);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+
+// Mark all notifications as read
+function markAllNotificationsAsRead() {
+    fetch('/admin/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove unread class from all items
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+            });
+            updateNotificationBadge(0);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+    });
+}
+
+// Refresh notifications function
+function refreshNotifications() {
+    loadNotifications();
+}
+
+// Initialize the notification system when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing code...
+    
+    // Initialize notification system
+    initializeNotificationSystem();
+    
+    // Existing code...
+});
+</script>
+<script>
+// Wire confirm delete modal button
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (!confirmBtn) return;
+
+    confirmBtn.addEventListener('click', function() {
+        if (!_pendingDelete == null) {
+            // nothing to do
+        }
+
+        if (!_pendingDelete) return;
+
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const token = tokenMeta ? tokenMeta.getAttribute('content') : '';
+
+        fetch(_pendingDelete.url, {
+            method: _pendingDelete.method || 'POST',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // hide modal
+            const modalEl = document.getElementById('confirmDeleteModal');
+            try { bootstrap.Modal.getInstance(modalEl).hide(); } catch (e) {}
+
+            if (data && data.success) {
+                try {
+                    if (typeof _pendingDelete.onSuccess === 'function') {
+                        _pendingDelete.onSuccess(data);
+                    }
+                } catch (e) {
+                    console.error('onSuccess callback error', e);
+                }
+            } else {
+                console.error('Delete failed', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error executing delete:', error);
+        })
+        .finally(() => { _pendingDelete = null; });
+    });
+});
+</script>
+@include('partials.notification-badge-visibility')
 </body>
 </html>

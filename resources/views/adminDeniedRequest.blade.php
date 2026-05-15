@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="{{ asset('KG2025 (2).png') }}" type="image/png">
-    <title>Pending Requests - LegalConnect</title>
+    <title>Denied Requests - LegalConnect</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,6 +13,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <link rel="stylesheet" href="{{ asset('css/adminDeniedRequest.blade.css') }}">
+    <style>
+        /* Fix for modal z-index issues */
+         .modal-backdrop {
+            z-index: 1040;
+        }
+        
+        .modal {
+            z-index: 1050;
+        }
+        
+        #deleteConfirmationModal .modal-container {
+            background-color: #fff !important;
+            border: 1px solid rgba(0, 0, 0, 0.2) !important;
+            border-radius: 0.3rem !important;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+            display: block !important;
+            flex-direction: column !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 500px !important;
+        }
+        
+        #deleteConfirmationModal .title-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 1rem !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+        
+        #deleteConfirmationModal .content-modal {
+            padding: 1rem;
+        }
+        
+        #deleteConfirmationModal .modal-footer {
+            justify-content: flex-end !important;
+            padding: 0.75rem;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
 </head>
 <body>
     <div id="wrapper">
@@ -36,6 +77,14 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Logs Requests</span>
                 </a>
+                <a href="{{ route('admin.walkins') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.walkins') ? 'active' : '' }}">
+                    <i class="fa-solid fa-clipboard" style="color: #cdd3df;"></i>
+                    <span>Walk-Ins logs</span>
+                </a>
+                <a href="{{ url('/statistics') }}" class="list-group-item list-group-item-action {{ request()->is('statistics') ? 'active' : '' }}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Statistics</span>
+                </a>
                 <a href="#messagesSubmenu" 
                 class="list-group-item list-group-item-action {{ request()->is('email-chat') || request()->is('messages/*') ? 'active' : '' }}"
                 data-bs-toggle="collapse" 
@@ -49,18 +98,18 @@
                         <i class="fas fa-envelope"></i>
                         <span>Email</span>
                     </a>
-                    <a href="{{ route('messages.sms') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ route('messages.sms') }}" class="list-group-item list-group-item-action {{ request()->is('sms-chat') ? 'active' : '' }}">
                         <i class="fas fa-sms"></i>
                         <span>SMS</span>
                     </a>
-                    <a href="{{ route('messages.system-chat') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ route('admin.system-chat') }}" class="list-group-item list-group-item-action {{ request()->is('admin/system-chat') ? 'active' : '' }}">
                         <i class="fas fa-comments"></i>
                         <span>System Chatting</span>
                     </a>
                 </div>
                 <a href="{{ url('/practice-areas') }}" class="list-group-item list-group-item-action {{ request()->is('practice-areas') ? 'active' : '' }}">
                     <i class="fa-solid fa-suitcase"></i>
-                    <span>Practice Areas</span>
+                    <span>Services</span>
                 </a>
 
                 <a href="#requestsSubmenu" class="list-group-item list-group-item-action {{ request()->is('clientstbl') || request()->is('adminAcceptedRequest') || request()->is('adminDeniedRequest') ? 'active' : '' }}" data-bs-toggle="collapse" aria-expanded="{{ request()->is('clientstbl') || request()->is('adminAcceptedRequest') || request()->is('adminDeniedRequest') ? 'true' : 'false' }}">
@@ -84,8 +133,13 @@
                 </div>
 
                 <a href="{{ url('/adminAccount') }}" class="list-group-item list-group-item-action {{ request()->is('adminAccount') ? 'active' : '' }}">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>All Staff Accounts</span>
+                </a>
+                <a href="{{ route('admin.account.settings') }}"
+                class="list-group-item list-group-item-action {{ request()->routeIs('admin.account.settings') ? 'active' : '' }}">
                     <i class="fas fa-user-cog"></i>
-                    <span>All Accounts</span>
+                    <span>Account Setting</span>
                 </a>
             </div>
         </div>
@@ -100,58 +154,47 @@
                 </div>
                 
                 <div class="top-bar-spacer"></div>
-
+                   <!-- Notification Dropdown -->
+                <div class="notification-container">
+                    <button class="notification-btn" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notificationBadge">0</span>
+                    </button>
+                    
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h4>Notifications</h4>
+                            <div class="notification-actions">
+                                <button class="btn btn-sm btn-link" id="markAllReadBtn">Mark all as read</button>
+                                <button class="btn btn-sm btn-link" onclick="refreshNotifications()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-list" id="notificationList">
+                            <div class="notification-empty">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No new notifications</p>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-footer">
+                            <a href="{{ route('clientstbl') }}" class="btn btn-sm btn-primary w-100">
+                                View All Pending Requests
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <!-- Log Out -->
                 <form id="logout-form" action="{{ route('custom.logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
-                <button type="button" class="btn logout-btn" aria-label="Log out" onclick="document.getElementById('logout-form').submit();">
+                <button type="button" class="btn logout-btn" onclick="showLogoutModal()">
                     <i class="fas fa-sign-out-alt"></i> Log out
                 </button>
             </nav>
 
-            <!-- Modal -->
-                         <!-- Delete Confirmation Modal -->
-            <div id="deleteConfirmationModal" class="modal" style="display: none;">
-                <div class="modal-content" style="max-width: 500px;">
-                    <span class="close" onclick="document.getElementById('deleteConfirmationModal').style.display='none'">&times;</span>
-                    
-                    <div class="modal-left" style="flex: 1; text-align: center;">
-                        <h3 style="border-left: none; text-align: center; color: #dc3545;">
-                            <i class="fas fa-exclamation-triangle" style="color: #dc3545; margin-right: 10px;"></i>
-                            Confirm Deletion
-                        </h3>
-                        
-                        <div class="confirmation-message" style="margin: 20px 0;">
-                            <p style="font-size: 16px; color: #333; margin-bottom: 10px;">
-                                Are you sure you want to delete this appointment?
-                            </p>
-                            <p style="font-size: 14px; color: #666; font-style: italic;">
-                                This action cannot be undone and will permanently remove the appointment record.
-                            </p>
-                        </div>
-
-                        <div class="confirmation-details" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
-                            <p style="margin: 5px 0; font-size: 14px;"><strong>Client:</strong> <span id="confirmClientName"></span></p>
-                            <p style="margin: 5px 0; font-size: 14px;"><strong>Date:</strong> <span id="confirmAppointmentDate"></span></p>
-                            <p style="margin: 5px 0; font-size: 14px;"><strong>Time:</strong> <span id="confirmAppointmentTime"></span></p>
-                        </div>
-
-                        <div class="modal-actions" style="justify-content: center; margin-top: 25px;">
-                            <button type="button" class="info-btn" onclick="document.getElementById('deleteConfirmationModal').style.display='none'" style="background-color: #6c757d;">
-                                <i class="fas fa-times"></i> CANCEL
-                            </button>
-                            <form id="confirmDeleteForm" method="POST" action="" style="margin: 0;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="deny-btn" style="background-color: #dc3545;">
-                                    <i class="fas fa-trash"></i> DELETE APPOINTMENT
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <!-- Information Modal -->
             <div id="infoModal" class="modal" style="display: none;">
                 <div class="modal-content">
@@ -189,6 +232,10 @@
                                 <label for="selected_time">Time:</label>
                                 <input type="text" name="selected_time" id="selected_time" readonly>
                             </div>
+                            {{-- <div class="form-group">
+                                <label for="selected_branch">Branch:</label>
+                                <input type="text" name="selected_branch" id="selected_branch" readonly>
+                            </div> --}}
                             <div class="form-group">
                                 <label for="appointment_approval">Status:</label>
                                 <input type="text" name="appointment_approval" id="appointment_approval" readonly>
@@ -197,15 +244,13 @@
 
                         <!-- Action Buttons -->
                         <div class="modal-actions">
+                            <!-- Changed to type="button" to show confirmation modal first -->
                             <button type="button" class="deny-btn" id="deleteBtn" data-id="">
                                 <i class="fas fa-trash"></i> DELETE
                             </button>
                             
                             <form id="archiveForm" method="POST" action="">
                                 @csrf
-                                <button type="submit" class="info-btn" style="background-color: #6b7280;">
-                                    <i class="fas fa-archive"></i> ARCHIVE
-                                </button>
                             </form>
                         </div>
                     </div>
@@ -238,8 +283,8 @@
                 <div class="header-container">
                     <!-- Header -->
                     <div class="page-header">
-                        <h1>Accepted Requests</h1>
-                        <p>Access and manage all accepted appointment requests. Review and maintain approved appointment records.</p>
+                        <h1>Denied Requests</h1>
+                        <p>Access and manage all denied appointment requests. Review and maintain denied appointment records.</p>
                     </div>
                     <!-- Search Bar -->
                     <div class="search-container">
@@ -260,31 +305,101 @@
                                 <th>Address</th>
                                 <th>Phone</th>
                                 <th>Consulting</th>
+                                 {{-- <th>Branch Chosen</th> --}}
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($appointments as $appointment)
-                                <tr>
-                                    <td>{{ $appointment->fullname }}</td>
-                                    <td>{{ $appointment->address }}</td>
-                                    <td>{{ $appointment->phone }}</td>
-                                    <td>{{ $appointment->consulting }}</td>
-                                    <td>{{ ucfirst($appointment->appointment_approval) }}</td>
-                                    <td>
-                                        <button class="info-btn view-btn" title="See Info" data-id="{{ $appointment->id }}">
-                                            <i class="fas fa-eye"></i> VIEW INFORMATION
-                                        </button>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" style="text-align:center;">No pending appointments found.</td>
-                                </tr>
-                            @endforelse
+                           @forelse ($appointments as $appointment)
+                            <tr>
+                                <td>{{ $appointment->fullname }}</td>
+                                <td>{{ $appointment->address }}</td>
+                                <td>{{ $appointment->phone }}</td>
+                                <td>{{ $appointment->consulting }}</td>
+                                {{-- <td>{{ $appointment->selected_branch ?? 'N/A' }}</td> --}}
+                                <td>{{ ucfirst($appointment->appointment_approval) }}</td>
+                                <td>
+                                    <button class="info-btn view-btn" title="See Info" data-id="{{ $appointment->id }}">
+                                        <i class="fas fa-eye"></i> VIEW
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" style="text-align:center;">No denied appointments found.</td>
+                            </tr>
+                        @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap Modal for Logout Confirmation -->
+    <div class="modal fade" id="logoutConfirmationModal" tabindex="-1" aria-labelledby="logoutModalLabel">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">
+                        <i class="fas fa-sign-out-alt me-2"></i>Confirm Logout
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div style="font-size: 48px; color: #ffc107; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h4 class="mb-3">Confirm Logout</h4>
+                    <p>Are you sure you want to log out?<br>You will be redirected to the login page.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="document.getElementById('logout-form').submit();">
+                        <i class="fas fa-sign-out-alt me-1"></i> Log Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal (using same structure as adminAcceptedRequest.blade.php) -->
+    <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-container">
+                <div class="title-header">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <center>
+                    <div class="content-modal">
+                        <div style="font-size: 48px; color: #dc3545; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                       
+                        <h4 class="mb-3">Confirm Deletion</h4>
+                        <p>Are you sure you want to delete this appointment?<br>This action cannot be undone.</p>
+                        
+                        <div class="confirmation-details mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: left; max-width: 80%; margin: 0 auto;">
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Client:</strong> <span id="confirmClientName">N/A</span></p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Date:</strong> <span id="confirmAppointmentDate">N/A</span></p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Time:</strong> <span id="confirmAppointmentTime">N/A</span></p>
+                            <p style="margin: 5px 0; font-size: 14px;"><strong>Consulting:</strong> <span id="confirmConsulting">N/A</span></p>
+                        </div>
+                    </div>
+                </center>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-1"></i> Delete Appointment
+                    </button>
                 </div>
             </div>
         </div>
@@ -294,131 +409,131 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Updated JavaScript -->
-   <!-- Updated JavaScript -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle sidebar
-        document.getElementById('menu-toggle').addEventListener('click', function() {
-            document.getElementById('wrapper').classList.toggle('toggled');
-        });
-        
-        // Close other submenus when opening a new one
-        const menuItems = document.querySelectorAll('.list-group-item[data-bs-toggle="collapse"]');
-        menuItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const targetId = this.getAttribute('href');
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                
-                if (isExpanded) return;
-                
-                menuItems.forEach(otherItem => {
-                    if (otherItem !== this) {
-                        const otherTargetId = otherItem.getAttribute('href');
-                        const otherTarget = document.querySelector(otherTargetId);
-                        if (otherTarget && otherTarget.classList.contains('show')) {
-                            const bsCollapse = new bootstrap.Collapse(otherTarget);
-                            bsCollapse.hide();
-                        }
-                    }
-                });
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                document.getElementById('wrapper').classList.toggle('toggled');
             });
-        });
-        
-        // Set active menu item on click
-        const allMenuItems = document.querySelectorAll('.list-group-item');
-        allMenuItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (this.hasAttribute('data-bs-toggle') && 
-                    this.getAttribute('data-bs-toggle') === 'collapse') {
-                    return;
-                }
-                
-                allMenuItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        // ===== SEARCH FUNCTIONALITY =====
-        const searchInput = document.getElementById('searchInput');
-        const clearSearch = document.getElementById('clearSearch');
-        const tableBody = document.querySelector('tbody');
-        const tableRows = tableBody.querySelectorAll('tr');
-
-        // Search function
-        function performSearch() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
             
-            // Show/hide clear button based on input
-            if (searchTerm.length > 0) {
-                clearSearch.style.display = 'block';
-            } else {
-                clearSearch.style.display = 'none';
-            }
+            // Close other submenus when opening a new one
+            const menuItems = document.querySelectorAll('.list-group-item[data-bs-toggle="collapse"]');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetId = this.getAttribute('href');
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    
+                    if (isExpanded) return;
+                    
+                    menuItems.forEach(otherItem => {
+                        if (otherItem !== this) {
+                            const otherTargetId = otherItem.getAttribute('href');
+                            const otherTarget = document.querySelector(otherTargetId);
+                            if (otherTarget && otherTarget.classList.contains('show')) {
+                                const bsCollapse = new bootstrap.Collapse(otherTarget);
+                                bsCollapse.hide();
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Set active menu item on click
+            const allMenuItems = document.querySelectorAll('.list-group-item');
+            allMenuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (this.hasAttribute('data-bs-toggle') && 
+                        this.getAttribute('data-bs-toggle') === 'collapse') {
+                        return;
+                    }
+                    
+                    allMenuItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
 
-            let hasVisibleRows = false;
+            // ===== SEARCH FUNCTIONALITY =====
+            const searchInput = document.getElementById('searchInput');
+            const clearSearch = document.getElementById('clearSearch');
+            const tableBody = document.querySelector('tbody');
+            const tableRows = tableBody.querySelectorAll('tr');
 
-            tableRows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                let rowMatches = false;
+            // Search function
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                // Show/hide clear button based on input
+                if (searchTerm.length > 0) {
+                    clearSearch.style.display = 'block';
+                } else {
+                    clearSearch.style.display = 'none';
+                }
 
-                // Check each cell in the row for the search term
-                cells.forEach(cell => {
-                    const cellText = cell.textContent.toLowerCase();
-                    if (cellText.includes(searchTerm)) {
-                        rowMatches = true;
+                let hasVisibleRows = false;
+
+                tableRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    let rowMatches = false;
+
+                    // Check each cell in the row for the search term
+                    cells.forEach(cell => {
+                        const cellText = cell.textContent.toLowerCase();
+                        if (cellText.includes(searchTerm)) {
+                            rowMatches = true;
+                        }
+                    });
+
+                    // Show/hide row based on match
+                    if (rowMatches || searchTerm === '') {
+                        row.style.display = '';
+                        hasVisibleRows = true;
+                    } else {
+                        row.style.display = 'none';
                     }
                 });
 
-                // Show/hide row based on match
-                if (rowMatches || searchTerm === '') {
-                    row.style.display = '';
-                    hasVisibleRows = true;
-                } else {
-                    row.style.display = 'none';
+                // Show "no results" message if no rows match
+                const noResultsRow = tableBody.querySelector('.no-results-message');
+                if (!hasVisibleRows && searchTerm !== '') {
+                    if (!noResultsRow) {
+                        const noResultsTr = document.createElement('tr');
+                        noResultsTr.className = 'no-results-message';
+                        noResultsTr.innerHTML = `
+                            <td colspan="7" style="text-align: center; color: #666; padding: 20px;">
+                                <i class="fas fa-search" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                No matching appointments found for "${searchTerm}"
+                            </td>
+                        `;
+                        tableBody.appendChild(noResultsTr);
+                    }
+                } else if (noResultsRow) {
+                    noResultsRow.remove();
                 }
-            });
-
-            // Show "no results" message if no rows match
-            const noResultsRow = tableBody.querySelector('.no-results-message');
-            if (!hasVisibleRows && searchTerm !== '') {
-                if (!noResultsRow) {
-                    const noResultsTr = document.createElement('tr');
-                    noResultsTr.className = 'no-results-message';
-                    noResultsTr.innerHTML = `
-                        <td colspan="6" style="text-align: center; color: #666; padding: 20px;">
-                            <i class="fas fa-search" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
-                            No matching appointments found for "${searchTerm}"
-                        </td>
-                    `;
-                    tableBody.appendChild(noResultsTr);
-                }
-            } else if (noResultsRow) {
-                noResultsRow.remove();
             }
-        }
 
-        // Event listeners for search
-        searchInput.addEventListener('input', performSearch);
-        
-        // Clear search functionality
-        clearSearch.addEventListener('click', function() {
-            searchInput.value = '';
-            clearSearch.style.display = 'none';
-            performSearch();
-            searchInput.focus();
-        });
-
-        // Close search on escape key
-        searchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
+            // Event listeners for search
+            searchInput.addEventListener('input', performSearch);
+            
+            // Clear search functionality
+            clearSearch.addEventListener('click', function() {
                 searchInput.value = '';
                 clearSearch.style.display = 'none';
                 performSearch();
-            }
-        });
+                searchInput.focus();
+            });
 
-        // ===== MODAL FUNCTIONALITY =====
+            // Close search on escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    clearSearch.style.display = 'none';
+                    performSearch();
+                }
+            });
+
+            // ===== MODAL FUNCTIONALITY =====
             let currentAppointmentData = null;
+            let currentDeleteUrl = '';
 
             document.querySelectorAll('.view-btn').forEach(button => {
                 button.addEventListener('click', function () {
@@ -430,9 +545,12 @@
                             }
                             return res.json();
                         })
-                        .then(data => {
+                       .then(data => {
                             console.log('Appointment data:', data);
                             currentAppointmentData = data;
+                            
+                            // Set delete URL for confirmation modal
+                            currentDeleteUrl = `/appointments/delete/${data.id}`;
                             
                             // Populate modal fields
                             document.getElementById('fullname').value = data.fullname || 'N/A';
@@ -446,7 +564,8 @@
                             
                             document.getElementById('selected_date').value = data.selected_date || 'N/A';
                             document.getElementById('selected_time').value = data.selected_time || 'N/A';
-                            document.getElementById('appointment_approval').value = data.appointment_approval || 'approved';
+                            {{-- document.getElementById('selected_branch').value = data.selected_branch || 'N/A'; --}}
+                            document.getElementById('appointment_approval').value = data.appointment_approval || 'denied';
                             
                             // Set delete button data
                             document.getElementById('deleteBtn').setAttribute('data-id', data.id);
@@ -520,62 +639,346 @@
 
             // Delete button click handler
             document.getElementById('deleteBtn').addEventListener('click', function() {
-                const appointmentId = this.getAttribute('data-id');
-                
                 if (currentAppointmentData) {
                     // Populate confirmation modal
                     document.getElementById('confirmClientName').textContent = currentAppointmentData.fullname || 'N/A';
                     document.getElementById('confirmAppointmentDate').textContent = currentAppointmentData.selected_date || 'N/A';
                     document.getElementById('confirmAppointmentTime').textContent = currentAppointmentData.selected_time || 'N/A';
+                    document.getElementById('confirmConsulting').textContent = 
+                        (currentAppointmentData.category || 'General') + ' - ' + (currentAppointmentData.case_name || 'Consultation');
                     
-                    // Set delete form action
-                    document.getElementById('confirmDeleteForm').action = `/appointments/delete/${appointmentId}`;
-                    
-                    // Show confirmation modal
+                    // Hide the info modal
                     document.getElementById('infoModal').style.display = 'none';
-                    document.getElementById('deleteConfirmationModal').style.display = 'flex';
+                    
+                    // Show the delete confirmation modal
+                    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+                    deleteModal.show();
+                }
+            });
+
+            // Confirm delete button handler
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                if (currentDeleteUrl) {
+                    // Create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = currentDeleteUrl;
+                    
+                    // Add CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+                    
+                    // Add method spoofing for DELETE
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+                    form.appendChild(methodInput);
+                    
+                    // Add to body and submit
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             });
 
             // Modal close on outside click
             window.onclick = function(event) {
                 const infoModal = document.getElementById('infoModal');
-                const deleteModal = document.getElementById('deleteConfirmationModal');
                 
                 if (event.target === infoModal) {
                     infoModal.style.display = "none";
                 }
-                if (event.target === deleteModal) {
-                    deleteModal.style.display = "none";
+            }
+
+            // Close modal with close button
+            const closeButton = document.querySelector('.close');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    document.getElementById('infoModal').style.display = "none";
+                });
+            }
+        });
+    </script>
+    
+    <script>
+        function showLogoutModal() {
+            const modal = new bootstrap.Modal(document.getElementById('logoutConfirmationModal'));
+            modal.show();
+        }
+    </script>
+
+    <script>
+        // ===== NOTIFICATION SYSTEM =====//
+function initializeNotificationSystem() {
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    
+    // Toggle notification dropdown
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('show');
+            // If dropdown opened, immediately hide badge and mark as read (user viewed notifications)
+            if (notificationDropdown.classList.contains('show')) {
+                try {
+                    // Visual hide immediately
+                    updateNotificationBadge(0);
+                } catch (err) {
+                    console.error('updateNotificationBadge not available', err);
+                }
+                try {
+                    // Mark all as read on server (non-blocking)
+                    markAllNotificationsAsRead();
+                } catch (err) {
+                    console.error('markAllNotificationsAsRead not available', err);
                 }
             }
-
-            // Close modals with close buttons
-            document.querySelectorAll('.close').forEach(closeBtn => {
-                closeBtn.addEventListener('click', function() {
-                    const modal = this.closest('.modal');
-                    if (modal) {
-                        modal.style.display = "none";
-                    }
-                });
-            });
-
-        // Modal close on outside click
-        window.onclick = function(event) {
-            const modal = document.getElementById('infoModal');
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        }
-
-        // Close modal with close button
-        const closeButton = document.querySelector('.close');
-        if (closeButton) {
-            closeButton.addEventListener('click', function() {
-                document.getElementById('infoModal').style.display = "none";
-            });
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (notificationBtn && notificationDropdown &&
+            !notificationBtn.contains(e.target) && 
+            !notificationDropdown.contains(e.target)) {
+            notificationDropdown.classList.remove('show');
         }
     });
-</script>
+    
+    // Mark all as read
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            markAllNotificationsAsRead();
+        });
+    }
+    
+    // Initialize notification system
+    loadNotifications();
+    
+    // Real-time polling every 10 seconds
+    setInterval(() => {
+        if (!notificationDropdown.classList.contains('show')) {
+            fetch('/admin/notifications/count')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const currentCount = parseInt(document.getElementById('notificationBadge').textContent);
+                        if (data.unread_count > currentCount) {
+                            loadNotifications();
+                        }
+                        updateNotificationBadge(data.unread_count);
+                    }
+                })
+                .catch(error => {
+                    console.error('Real-time polling error:', error);
+                });
+        }
+    }, 10000); // 10 seconds
+}
+
+function loadNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    fetch('/admin/notifications/unread')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                updateNotificationBadge(data.unread_count);
+                renderNotifications(data.notifications);
+            } else {
+                console.error('Notification error:', data.error || 'Unknown error');
+                showFallbackNotifications();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            showFallbackNotifications();
+        });
+}
+
+function updateNotificationBadge(count) {
+    const notificationBadge = document.getElementById('notificationBadge');
+    if (notificationBadge) {
+        notificationBadge.textContent = count;
+        notificationBadge.style.display = count > 0 ? 'block' : 'none';
+    }
+}
+
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        return 'Recently';
+    }
+    
+    const seconds = Math.floor((now - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return interval + ' year' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return interval + ' month' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval + ' day' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval + ' hour' + (interval > 1 ? 's' : '') + ' ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval + ' minute' + (interval > 1 ? 's' : '') + ' ago';
+    
+    return 'Just now';
+}
+
+function renderNotifications(notifications) {
+    const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    if (!notifications || notifications.length === 0) {
+        notificationList.innerHTML = `
+            <div class="notification-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No new notifications</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    notifications.forEach(notification => {
+        const timeAgo = formatTimeAgo(notification.created_at);
+        const isUnread = !notification.is_read;
+        
+        html += `
+            <div class="notification-item ${isUnread ? 'unread' : ''}" 
+                 data-id="${notification.id}" 
+                 onclick="markNotificationAsRead(${notification.id}, this)">
+                <div class="notification-icon">
+                    <i class="fas fa-calendar-plus"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${escapeHtml(notification.title)}</div>
+                    <div class="notification-message">${escapeHtml(notification.message)}</div>
+                    <div class="notification-time">
+                        <i class="far fa-clock"></i>
+                        ${timeAgo}
+                    </div>
+                    <div class="notification-actions-row">
+                        <button class="btn btn-sm btn-outline-primary see-more-btn" 
+                                onclick="event.stopPropagation(); window.location.href='{{ route('clientstbl') }}'">
+                            <i class="fas fa-external-link-alt"></i> See More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    notificationList.innerHTML = html;
+}
+
+function showFallbackNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    if (notificationList) {
+        notificationList.innerHTML = `
+            <div class="notification-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Unable to load notifications</p>
+                <small>Please check your connection</small>
+            </div>
+        `;
+    }
+}
+
+// Mark notification as read
+function markNotificationAsRead(id, element) {
+    fetch(`/admin/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (element) {
+                element.classList.remove('unread');
+            }
+            updateNotificationBadge(data.unread_count);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+
+// Mark all notifications as read
+function markAllNotificationsAsRead() {
+    fetch('/admin/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove unread class from all items
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+            });
+            updateNotificationBadge(0);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+    });
+}
+
+// Refresh notifications function
+function refreshNotifications() {
+    loadNotifications();
+}
+
+// Utility function for escaping HTML (add if not already present)
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Initialize notification system when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing initialization code...
+    
+    // Initialize notification system
+    initializeNotificationSystem();
+    
+    // Existing code continues...
+});
+    </script>
+@include('partials.notification-badge-visibility')
 </body>
 </html>

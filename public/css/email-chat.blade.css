@@ -4,7 +4,6 @@ html, body {
   margin: 0;
   width: 100vw;
   background-color: #cfcdcd;
-  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
 }
 
 /* This makes the container stretch full height and use flexbox */
@@ -32,7 +31,7 @@ html, body {
 }
 
 .sidebar-heading {
-    padding: 20px 15px;
+    padding: 10px;
     background: rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 18px;
@@ -42,6 +41,15 @@ html, body {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-heading img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .list-group-item {
@@ -51,9 +59,10 @@ html, body {
     padding: 12px 15px;
     border-left: 4px solid transparent;
     text-decoration: none;
-    display: block;
-    width: 100%;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
 }
 
 .list-group-item:hover, .list-group-item:focus {
@@ -72,6 +81,7 @@ html, body {
     margin-right: 10px;
     width: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .list-group-item .fa-chevron-down {
@@ -79,6 +89,7 @@ html, body {
     margin-top: 5px;
     font-size: 12px;
     transition: transform 0.3s;
+    margin-left: auto;
 }
 
 .list-group-item[aria-expanded="true"] .fa-chevron-down {
@@ -88,19 +99,35 @@ html, body {
 .submenu {
     padding-left: 30px;
     background: #293846;
+    
 }
 
 .submenu .list-group-item {
     padding: 8px 15px;
     font-size: 13px;
 }
+/* Ensure submenu stays visible when expanded */
+.submenu.show {
+    display: block !important;
+}
 
+/* Prevent any interference with Bootstrap collapse */
+.collapse:not(.show) {
+    display: none;
+}
+
+.collapsing {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+}
 /* Page Content */
 #page-content-wrapper {
-    width: calc(100% - 220px);
-    margin-left: 220px;
-    padding: 0;
-    transition: all 0.3s;
+  width: calc(100% - 220px);
+  margin-left: 220px;
+  padding: 0;
+  transition: all 0.3s;
+  margin-top: 60px; /* Add margin to prevent content from hiding under fixed bar */
 }
 
 /* Toggle Button */
@@ -125,25 +152,48 @@ html, body {
 }
 
 #wrapper.toggled #page-content-wrapper {
-    width: calc(100% - 70px);
-    margin-left: 70px;
+  width: calc(100% - 70px);
+  margin-left: 70px;
 }
 
-#wrapper.toggled .sidebar-heading,
-#wrapper.toggled .list-group-item span:not(.fa) {
+/* Keep the logo visible when sidebar is collapsed */
+#wrapper.toggled .sidebar-heading {
+    padding: 15px 0;
+    justify-content: center;
+    height: auto;
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none; /* Hide the text "LegalConnect" */
+}
+
+#wrapper.toggled .sidebar-heading img {
+    margin: 0;
+    display: block; /* Ensure logo is visible */
+}
+
+/* Hide text labels and chevrons when collapsed */
+#wrapper.toggled .list-group-item span {
+    display: none;
+}
+
+#wrapper.toggled .list-group-item .fa-chevron-down {
     display: none;
 }
 
 #wrapper.toggled .list-group-item {
     text-align: center;
     padding: 15px 10px;
+    justify-content: center;
 }
 
 #wrapper.toggled .list-group-item i {
     margin-right: 0;
     font-size: 18px;
+    display: block;
 }
 
+/* Hide submenus when collapsed */
 #wrapper.toggled .submenu {
     display: none !important;
 }
@@ -166,34 +216,40 @@ main {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
-    #sidebar-wrapper {
-        width: 70px;
-    }
-    
-    #page-content-wrapper {
-        width: calc(100% - 70px);
-        margin-left: 70px;
-    }
-    
-    .sidebar-heading,
-    .list-group-item span:not(.fa) {
-        display: none;
-    }
-    
-    .list-group-item {
-        text-align: center;
-        padding: 15px 10px;
-    }
-    
-    .list-group-item i {
-        margin-right: 0;
-        font-size: 18px;
-    }
-    
-    .submenu {
-        display: none !important;
-    }
+  .top-bar {
+    left: 70px;
+  }
+  
+  #page-content-wrapper {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+    margin-top: 60px;
+  }
 }
+
+@media (max-width: 640px) {
+  .top-bar {
+    left: 0;
+    right: 0;
+  }
+  
+  #page-content-wrapper {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 60px;
+  }
+  
+  #wrapper.toggled .top-bar {
+    left: 220px;
+  }
+  
+  #wrapper.toggled #page-content-wrapper {
+    width: calc(100% - 220px);
+    margin-left: 220px;
+    margin-top: 60px;
+  }
+}
+
 
 @media (max-width: 640px) {
     #sidebar-wrapper {
@@ -214,21 +270,47 @@ main {
         margin-left: 220px;
     }
     
-    #wrapper.toggled .sidebar-heading,
-    #wrapper.toggled .list-group-item span:not(.fa) {
-        display: block;
+    /* Show text labels when sidebar is expanded on mobile */
+    #wrapper.toggled .sidebar-heading span {
+        display: inline;
+    }
+    
+    #wrapper.toggled .list-group-item span {
+        display: inline;
+    }
+    
+    #wrapper.toggled .list-group-item {
+        text-align: left;
+        justify-content: flex-start;
+    }
+    
+    #wrapper.toggled .list-group-item i {
+        margin-right: 10px;
     }
 }
 
 /* Top bar styles */
 .top-bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 220px; /* Account for sidebar width */
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #f9f9f9;
   padding: 10px 20px;
-  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 60px; /* Fixed height for consistency */
+  transition: left 0.3s; /* Match sidebar transition */
 }
+
+/* When sidebar is toggled (collapsed) */
+#wrapper.toggled .top-bar {
+  left: 70px; /* Account for collapsed sidebar width */
+}
+
 
 .nav-logo {
   display: flex;
@@ -270,113 +352,128 @@ main {
     box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-  .email-chat-container {
-            display: flex;
-            height: 100vh;
-            font-family: "Poppins", "Inter", "Segoe UI", sans-serif !important;
-        }
-        
-        .email-sidebar {
-            width: 350px;
-            background: #eeeeee;
-            border-right: 1px solid #dee2e6;
-            overflow-y: auto;
-        }
-        
-        .email-chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-header {
-            padding: 15px;
-            background: #007bff;
-            color: white;
-        }
-        
-        .messages-container {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: #fff;
-        }
-        
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 70%;
-        }
-        
-        .incoming {
-            background: #e9ecef;
-            margin-right: auto;
-        }
-        
-        .outgoing {
-            background: #007bff;
-            color: white;
-            margin-left: auto;
-        }
-        
-        .message-sender {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .message-time {
-            font-size: 0.8em;
-            opacity: 0.7;
-        }
-        
-        .compose-form {
-            padding: 15px;
-            border-top: 1px solid #dee2e6;
-            background: #f8f9fa;
-        }
-        
-        .contact-item {
-            padding: 12px;
-            border-bottom: 1px solid #dee2e6;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .contact-item:hover {
-            background: #e9ecef;
-        }
-        
-        .contact-item.active {
-            background: #007bff;
-            color: white;
-        }
-        
-        .section-header {
-            padding: 10px 15px;
-            background: black;
-            font-weight: bold;
-            border-bottom: 1px solid #dee2e6;
-            color: white;
-        }
-        
-        .contact-name {
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        
-        .contact-email {
-            font-size: 0.85em;
-            opacity: 0.7;
-        }
-        
-        .no-contacts {
-            padding: 15px;
-            text-align: center;
-            color: #6c757d;
-        }
+/* EMAIL CHAT CONTAINER - THIS IS THE KEY FIX */
+.email-chat-container {
+    display: flex; /* Add this - it was missing! */
+    height: calc(100vh - 60px);
 
-        /* Message Styles */
+    width: 100%;
+    overflow: hidden; /* Prevent overflow */
+}
+
+.email-sidebar {
+    width: 350px;
+    background: #eeeeee;
+    border-right: 1px solid #dee2e6;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    position: relative;
+    z-index: 10;
+}
+
+.email-chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Important for flexbox text overflow */
+    position: relative;
+}
+        
+.chat-header {
+    padding: 15px;
+    background: #007bff;
+    color: white;
+}
+        
+.messages-container {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    background: #fff;
+}
+        
+.message {
+    margin: 15px 0;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    max-width: 80%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+}
+        
+.incoming {
+    background-color: #f8f9fa;
+    border-left: 4px solid #4285f4;
+    margin-right: auto;
+}
+        
+.outgoing {
+    background-color: #e3f2fd;
+    border-left: 4px solid #34a853;
+    margin-left: auto;
+}
+        
+.message-sender {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+        
+.message-time {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+        
+.compose-form {
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+        
+.contact-item {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+        
+.contact-item:hover {
+    background: #e9ecef;
+}
+        
+.contact-item.active {
+    background: #007bff;
+    color: white;
+}
+        
+.section-header {
+    padding: 10px 15px;
+    background: black;
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+    color: white;
+}
+        
+.contact-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+        
+.contact-email {
+    font-size: 0.85em;
+    opacity: 0.7;
+}
+        
+.no-contacts {
+    padding: 15px;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* Message Styles */
 .message {
     margin: 15px 0;
     padding: 15px;
@@ -420,11 +517,27 @@ main {
     color: #202124;
 }
 
+/* FIX FOR LONG TEXT - MAKE SURE TEXT DOESN'T BREAK LAYOUT */
 .message-text {
     color: #3c4043;
     line-height: 1.4;
     margin-bottom: 8px;
     white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    overflow: hidden; /* Add this to contain text */
+    display: block;
+}
+
+/* FORCE TEXT TO WRAP PROPERLY */
+.message-text pre,
+.message-text code {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-width: 100%;
+    overflow: auto;
 }
 
 .message-footer {
@@ -506,4 +619,162 @@ main {
     opacity: 0.7;
     display: block;
     margin-top: 2px;
+}
+
+/* Modal header adjustments to accommodate filter */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#logoutConfirmationModal .title-header {
+    align-items: center !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-top-left-radius: calc(0.3rem - 1px) !important;
+    border-top-right-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    padding: 1rem !important;
+}
+.modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: calc(var(--bs-modal-padding) - var(--bs-modal-footer-gap) * .5);
+    background-color: var(--bs-modal-footer-bg);
+    border-top: var(--bs-modal-footer-border-width) solid var(--bs-modal-footer-border-color);
+    border-bottom-right-radius: var(--bs-modal-inner-border-radius);
+    border-bottom-left-radius: var(--bs-modal-inner-border-radius);
+}
+#logoutConfirmationModal .modal-content {
+    background-color: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    display: block !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    width: 800px !important;
+}
+/* Refresh Button Styles */
+#refresh-messages-btn {
+    padding: 8px 15px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#refresh-messages-btn:hover {
+    background: #218838;
+}
+
+#refresh-messages-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+#refresh-messages-btn i {
+    font-size: 0.9em;
+}
+
+/* Loading spinner animation */
+.fa-spinner.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Add to your existing CSS */
+.message {
+    margin: 15px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    max-width: 80%;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.message.incoming {
+    background: #e9f7fe;
+    border-left: 4px solid #007bff;
+    margin-right: auto;
+}
+
+.message.outgoing {
+    background: #f0f0f0;
+    border-left: 4px solid #28a745;
+    margin-left: auto;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.sender-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.timestamp {
+    color: #666;
+    font-size: 0.8em;
+}
+
+.message-subject {
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.message-text {
+    color: #333;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.message-footer {
+    margin-top: 8px;
+    font-size: 0.8em;
+    color: #666;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.message-type {
+    font-style: italic;
+}
+
+.message-email {
+    font-family: monospace;
 }

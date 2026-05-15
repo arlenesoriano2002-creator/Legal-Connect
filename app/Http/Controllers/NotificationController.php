@@ -110,7 +110,7 @@ class NotificationController extends Controller
             case 'pending':
                 return "⏳ Your appointment request for $fullname is pending review.$datetime";
             default:
-                return "📅 Appointment status updated for $fullname: " . $notification->approval_appointment . $datetime;
+                return "📅 Appointment status updated for $fullname: " . ($notification->appointment_approval ?? 'Pending') . $datetime;
         }
     }
 

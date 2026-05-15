@@ -237,7 +237,10 @@ button:active {
   flex: 1;
   max-width: 400px; /* Limit maximum width */
 }
-
+.second-section{
+  flex: 1;
+  max-width: 400px;
+}
 .categories-case {
   flex: 1;
   max-width: 400px; /* Limit maximum width */

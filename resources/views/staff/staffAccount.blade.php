@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="{{ asset('css/staff/dashboardStaff.blade.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+    
 </head>
 <body>
     <div class="container">
@@ -60,6 +63,7 @@
     </div>
 
  <script src="{{ asset('js/staff/dashboardStaff.js') }}"></script>
+<script src="{{ asset('js/staff/diffunNotifications.js') }}"></script>
   <script>
     console.log("Current route: {{ Request::path() }}");
     // Check if there are any dynamic elements that might be trying to use dashboardStaff.page

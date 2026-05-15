@@ -337,9 +337,10 @@ body {
 
     
     .form-header {
-        margin-bottom: 20px; /* Reduced from 25px */
-        padding: 6px 6px 20px 6px; /* Reduced bottom padding */
+        margin-bottom: 16px; /* Reduced from 25px */
+        padding: 6px 6px 5px 6px; /* Reduced bottom padding */
         border-radius: 8px 8px 0 0;
+        height: 120px;
     }
     
     .form-logo {
@@ -347,7 +348,10 @@ body {
         height: 44px;
         margin: 0 auto 16px; /* Reduced from 20px */
     }
-    
+    .imgLogo{
+        width: 44px;
+        height: 44px;
+    }
     .form-title {
         font-size: 26px;
     }

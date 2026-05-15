@@ -50,27 +50,44 @@
             <input type="email" id="email" name="email" value="{{ old('email', $email) }}" required />
           </div>
 
-          <div class="categories-case">
-            <h2>Select Your Case</h2>
-            
-            <!-- Category Selection -->
-            <label for="category">Category</label>
-            <select id="category" name="category" required>
-              <option value="">Select Category</option>
-              @foreach($caseCategories as $category)
-                <option value="{{ $category->category }}" {{ old('category') == $category->category ? 'selected' : '' }}>
-                  {{ $category->category }}
-                </option>
-              @endforeach
-            </select>
+          <div class="second-section">
+            <div class="categories-case">
+              <h2>Select Your Case</h2>
+              
+              <!-- Category Selection -->
+              <label for="category">Category</label>
+              <select id="category" name="category" required>
+                <option value="">Select Category</option>
+                @foreach($caseCategories as $category)
+                  <option value="{{ $category->category }}" {{ old('category') == $category->category ? 'selected' : '' }}>
+                    {{ $category->category }}
+                  </option>
+                @endforeach
+              </select>
 
-            <!-- Case Type Selection (Dynamic) -->
-            <label for="case_id">Case Type</label>
-            <select id="case_id" name="case_id" required>
-              <option value="">Please select a category first</option>
-              <!-- Dynamic options will be loaded here via JavaScript -->
-            </select>
+              <!-- Case Type Selection (Dynamic) -->
+              <label for="case_id">Case Type</label>
+              <select id="case_id" name="case_id" required>
+                <option value="">Please select a category first</option>
+                <!-- Dynamic options will be loaded here via JavaScript -->
+              </select>
+            </div>
+
+            <div class="branch-selection">
+              <!-- Add branch dropdown here -->
+              <label for="branch">Offices</label>
+              <select id="branch" name="branch" required>
+                <option value="">Select Office</option>
+                @foreach($lawOffices as $office)
+                  <option value="{{ $office->law_office }}" {{ old('branch') == $office->law_office ? 'selected' : '' }}>
+                    {{ $office->law_office }}
+                  </option>
+                @endforeach
+              </select>
+              
+            </div>
           </div>
+
         </div>
 
         <div class="buttons">
@@ -168,16 +185,18 @@
     document.querySelector('form').addEventListener('submit', function(e) {
         const category = document.getElementById('category').value;
         const caseId = document.getElementById('case_id').value;
+        const branch = document.getElementById('branch').value;
         
-        if (!category || !caseId) {
+        if (!category || !caseId || !branch) {
             e.preventDefault();
-            alert('Please select both category and case type.');
+            alert('Please select category, case type, and branch office.');
             return;
         }
 
         console.log('Form submitted with:', {
             category: category,
-            case_id: caseId
+            case_id: caseId,
+            branch: branch
         });
     });
   </script>

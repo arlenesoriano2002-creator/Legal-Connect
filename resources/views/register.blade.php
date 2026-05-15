@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="{{ asset('css/register.blade.css') }}">
     <title>Legal Connect - Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    {{-- Global Error Handler --}}
+    @include('partials.global-error-handler')
+
 </head>
 <body>
     <div class="register-container">
@@ -14,7 +18,7 @@
             <!-- Header -->
             <div class="form-header">
                 <div class="form-logo">
-                    <img src="logo6.png" alt="LegalConnect logo" width="80" height="80" />
+                    <img class="imgLogo" src="logo6.png" alt="LegalConnect logo" width="80" height="80" />
                 </div>
                 <h1 class="form-title">REGISTER</h1>
             </div>
@@ -42,111 +46,125 @@
                     @csrf 
                     
                     <div class="inputs-form">
-                        <div class="details-input">
-                            <!-- Fullname Input -->
-                            <div class="form-group">
-                                <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                                <input type="text" name="name" class="form-input" placeholder="Fullname (Firstname, M.I, Surname)" required
-                                    oninput="validateFullName(event)" value="{{ old('name') }}">
-                                @error('name')
-                                    <span class="error-text">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <!-- Phone Number Input with Country Code -->
-                            <div class="form-group">
-                                <div class="phone-input-container">
-                                    <select name="country_code" id="country_code" class="country-code-select" onchange="updatePhoneNumberLimit()">
-                                        <option value="+63" {{ old('country_code') == '+63' ? 'selected' : '' }}>+63 Philippines</option>
-                                        <option value="+1" {{ old('country_code') == '+1' ? 'selected' : '' }}>+1 USA/Canada</option>
-                                        <option value="+44" {{ old('country_code') == '+44' ? 'selected' : '' }}>+44 UK</option>
-                                        <option value="+61" {{ old('country_code') == '+61' ? 'selected' : '' }}>+61 Australia</option>
-                                        <option value="+81" {{ old('country_code') == '+81' ? 'selected' : '' }}>+81 Japan</option>
-                                        <option value="+86" {{ old('country_code') == '+86' ? 'selected' : '' }}>+86 China</option>
-                                        <option value="+91" {{ old('country_code') == '+91' ? 'selected' : '' }}>+91 India</option>
-                                        <option value="+49" {{ old('country_code') == '+49' ? 'selected' : '' }}>+49 Germany</option>
-                                        <option value="+33" {{ old('country_code') == '+33' ? 'selected' : '' }}>+33 France</option>
-                                        <option value="+34" {{ old('country_code') == '+34' ? 'selected' : '' }}>+34 Spain</option>
-                                        <option value="+39" {{ old('country_code') == '+39' ? 'selected' : '' }}>+39 Italy</option>
-                                        <option value="+7" {{ old('country_code') == '+7' ? 'selected' : '' }}>+7 Russia</option>
-                                        <option value="+82" {{ old('country_code') == '+82' ? 'selected' : '' }}>+82 South Korea</option>
-                                        <option value="+55" {{ old('country_code') == '+55' ? 'selected' : '' }}>+55 Brazil</option>
-                                        <option value="+52" {{ old('country_code') == '+52' ? 'selected' : '' }}>+52 Mexico</option>
-                                    </select>
-                                    <input type="text" name="phone_number" class="form-input phone-number-input" placeholder="Phone number" required
-                                        id="phone_number" oninput="validatePhoneNumber(event)" value="{{ old('phone_number') }}">
+                        <div class="form-columns">
+                            <div class="left-column">
+                                <!-- Fullname Input -->
+                                <div class="form-group">
+                                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    <input type="text" name="name" class="form-input" placeholder="Fullname (Firstname, M.I, Surname)" required
+                                        oninput="validateFullName(event)" value="{{ old('name') }}">
+                                    @error('name')
+                                        <span class="error-text">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                                @error('country_code')
-                                    <span class="error-text">{{ $message }}</span>
-                                @enderror
-                                @error('phone_number')
-                                    <span class="error-text">{{ $message }}</span>
-                                @enderror
-                                <div class="phone-limit-info" id="phoneLimitInfo">Max: 10 digits</div>
-                            </div>
 
-                            <!-- Email Input -->
-                            <div class="form-group">
-                                <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-                                </svg>
-                                <input type="email" name="email" class="form-input" placeholder="Email" required value="{{ old('email') }}">
-                                @error('email')
-                                    <span class="error-text">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="password-inputs">
-                            <!-- Password Input -->
-                            <div class="form-group">
-                                <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                </svg>
-                                <input type="password" name="password" class="form-input" placeholder="Password" required id="password">
-                                <button type="button" class="password-toggle" onclick="togglePassword('password', 'eye-open-1', 'eye-closed-1')">
-                                    <svg id="eye-closed-1" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                    <svg id="eye-open-1" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
-                                    </svg>
-                                </button>
-                                @error('password')
-                                    <span class="error-text">{{ $message }}</span>
-                                @enderror
-
-                                <!-- Password Strength Meter -->
-                                <div class="password-strength">
-                                    <div class="strength-meter">
-                                        <div class="strength-fill" id="strengthFill"></div>
+                                <!-- Phone Number Input with Country Code -->
+                                <div class="form-group">
+                                    <div class="phone-input-container">
+                                        <select name="country_code" id="country_code" class="country-code-select" onchange="updatePhoneNumberLimit()">
+                                            <option value="+63" {{ old('country_code') == '+63' ? 'selected' : '' }}>+63 Philippines</option>
+                                            <option value="+1" {{ old('country_code') == '+1' ? 'selected' : '' }}>+1 USA/Canada</option>
+                                            <option value="+44" {{ old('country_code') == '+44' ? 'selected' : '' }}>+44 UK</option>
+                                            <option value="+61" {{ old('country_code') == '+61' ? 'selected' : '' }}>+61 Australia</option>
+                                            <option value="+81" {{ old('country_code') == '+81' ? 'selected' : '' }}>+81 Japan</option>
+                                            <option value="+86" {{ old('country_code') == '+86' ? 'selected' : '' }}>+86 China</option>
+                                            <option value="+91" {{ old('country_code') == '+91' ? 'selected' : '' }}>+91 India</option>
+                                            <option value="+49" {{ old('country_code') == '+49' ? 'selected' : '' }}>+49 Germany</option>
+                                            <option value="+33" {{ old('country_code') == '+33' ? 'selected' : '' }}>+33 France</option>
+                                            <option value="+34" {{ old('country_code') == '+34' ? 'selected' : '' }}>+34 Spain</option>
+                                            <option value="+39" {{ old('country_code') == '+39' ? 'selected' : '' }}>+39 Italy</option>
+                                            <option value="+7" {{ old('country_code') == '+7' ? 'selected' : '' }}>+7 Russia</option>
+                                            <option value="+82" {{ old('country_code') == '+82' ? 'selected' : '' }}>+82 South Korea</option>
+                                            <option value="+55" {{ old('country_code') == '+55' ? 'selected' : '' }}>+55 Brazil</option>
+                                            <option value="+52" {{ old('country_code') == '+52' ? 'selected' : '' }}>+52 Mexico</option>
+                                        </select>
+                                        <input type="text" name="phone_number" class="form-input phone-number-input" placeholder="Phone number" required
+                                            id="phone_number" oninput="validatePhoneNumber(event)" value="{{ old('phone_number') }}">
                                     </div>
-                                    <div class="strength-text" id="strengthText">
-                                        <span>Password strength: </span>
-                                        <span id="strengthLevel">Too short</span>
-                                    </div>
+                                    @error('country_code')
+                                        <span class="error-text">{{ $message }}</span>
+                                    @enderror
+                                    @error('phone_number')
+                                        <span class="error-text">{{ $message }}</span>
+                                    @enderror
+                                    <div class="phone-limit-info" id="phoneLimitInfo">Max: 10 digits</div>
+                                </div>
+
+                                <!-- Address Input -->
+                                <div class="form-group">
+                                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <input type="text" name="address" class="form-input" placeholder="Address" required value="{{ old('address') }}">
+                                    @error('address')
+                                        <span class="error-text">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
 
-                            <!-- Confirm Password Input -->
-                            <div class="form-group">
-                                <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                </svg>
-                                <input type="password" name="password_confirmation" class="form-input" placeholder="Confirm Password" required id="password_confirmation">
-                                <button type="button" class="password-toggle" onclick="togglePassword('password_confirmation', 'eye-open-2', 'eye-closed-2')">
-                                    <svg id="eye-closed-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            <div class="right-column">
+                                <!-- Email Input -->
+                                <div class="form-group">
+                                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                                     </svg>
-                                    <svg id="eye-open-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+                                    <input type="email" name="email" class="form-input" placeholder="Email" required value="{{ old('email') }}">
+                                    @error('email')
+                                        <span class="error-text">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <!-- Password Input -->
+                                <div class="form-group">
+                                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                     </svg>
-                                </button>
+                                    <input type="password" name="password" class="form-input" placeholder="Password" required id="password">
+                                    <button type="button" class="password-toggle" onclick="togglePassword('password', 'eye-open-1', 'eye-closed-1')">
+                                        <svg id="eye-closed-1" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        <svg id="eye-open-1" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+                                        </svg>
+                                    </button>
+                                    @error('password')
+                                        <span class="error-text">{{ $message }}</span>
+                                    @enderror
+
+                                    <!-- Password Strength Meter -->
+                                    <div class="password-strength">
+                                        <div class="strength-meter">
+                                            <div class="strength-fill" id="strengthFill"></div>
+                                        </div>
+                                        <div class="strength-text" id="strengthText">
+                                            <span>Password strength: </span>
+                                            <span id="strengthLevel">Too short</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Confirm Password Input -->
+                                <div class="form-group">
+                                    <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                    <input type="password" name="password_confirmation" class="form-input" placeholder="Confirm Password" required id="password_confirmation">
+                                    <button type="button" class="password-toggle" onclick="togglePassword('password_confirmation', 'eye-open-2', 'eye-closed-2')">
+                                        <svg id="eye-closed-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        <svg id="eye-open-2" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

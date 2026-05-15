@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('appointments', function (Blueprint $table) {
-            $table->string('selected_time')->nullable()->after('selected_date');
-        });
+        if (Schema::hasTable('appointments') && !Schema::hasColumn('appointments', 'selected_time')) {
+            Schema::table('appointments', function (Blueprint $table) {
+                $table->string('selected_time')->nullable()->after('selected_date');
+            });
+        }
     }
 
     public function down()

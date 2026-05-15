@@ -6,15 +6,45 @@
 <body>
     <h2>Appointment Approved</h2>
     
-    <p>Dear {{ $appointment->fullname }},</p>
+    <p>Dear {{ $appointment->fullname ?? $appointmentData['fullname'] ?? 'Valued Client' }},</p>
     
-    <p>We are pleased to inform you that your appointment request has been <strong>APPROVED</strong>.</p>
+    <p>
+        We are pleased to inform you that your appointment request for
+        <strong>{{ $appointment->case_name ?? $appointmentData['case_name'] ?? 'N/A' }}</strong>
+        under
+        <strong>{{ $appointment->category ?? $appointmentData['category'] ?? 'N/A' }}</strong>
+        has been <strong>APPROVED</strong>.
+    </p>
     
     <p><strong>Appointment Details:</strong></p>
     <ul>
-        <li><strong>Date:</strong> {{ $appointment->selected_date }}</li>
-        <li><strong>Time:</strong> {{ $appointment->selected_time }}</li>
-        <li><strong>Consultation Type:</strong> {{ $appointment->consulting }}</li>
+        <li><strong>Date:</strong> 
+            @php
+                // Prioritize appointmentData (captured at instantiation), then fall back to appointment object
+                $dateValue = $appointmentData['selected_date'] ?? $appointment->selected_date ?? $appointment->schedule_date ?? null;
+            @endphp
+            @if(!empty($dateValue) && $dateValue !== '')
+                {{ $dateValue }}
+            @else
+                <em>Date to be scheduled</em>
+            @endif
+        </li>
+        <li><strong>Time:</strong> 
+            @php
+                // Prioritize appointmentData (captured at instantiation), then fall back to appointment object
+                $timeValue = $appointmentData['selected_time'] ?? $appointment->selected_time ?? $appointment->schedule_time ?? null;
+            @endphp
+            @if(!empty($timeValue) && $timeValue !== '')
+                {{ $timeValue }}
+            @else
+                <em>Time to be scheduled</em>
+            @endif
+        </li>
+        <li><strong>Consultation Type:</strong> 
+            {{ $appointment->category ?? $appointmentData['category'] ?? 'N/A' }} - 
+            {{ $appointment->case_name ?? $appointmentData['case_name'] ?? 'N/A' }}
+        </li>
+        <li><strong>Branch:</strong> {{ $appointment->selected_branch ?? $appointmentData['selected_branch'] ?? 'N/A' }}</li>
     </ul>
     
     <p>Please arrive on time for your appointment. If you need to reschedule, please contact us in advance.</p>

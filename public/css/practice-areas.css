@@ -28,10 +28,12 @@ html, body {
     transition: all 0.3s;
     position: fixed;
     z-index: 1000;
+      transition: width 0.28s ease;
+  will-change: width;
 }
 
 .sidebar-heading {
-    padding: 20px 15px;
+    padding: 10px;
     background: rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 18px;
@@ -112,10 +114,13 @@ html, body {
 /* Page Content */
 #page-content-wrapper {
     width: calc(100% - 220px);
-    margin-left: 220px;
+    margin-left: 220px; /* Match sidebar width */
     padding: 0;
-    transition: all 0.3s;
+    transition: margin-left 0.28s ease, width 0.28s ease;
+    will-change: margin-left, width;
 }
+
+
 
 /* Toggle Button */
 #menu-toggle {
@@ -133,7 +138,7 @@ html, body {
     box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Collapsed Sidebar */
+/* Collapsed Sidebar (FIXED) */
 #wrapper.toggled #sidebar-wrapper {
     width: 70px;
 }
@@ -143,25 +148,80 @@ html, body {
     margin-left: 70px;
 }
 
-#wrapper.toggled .sidebar-heading,
-#wrapper.toggled .list-group-item span:not(.fa) {
-    display: none;
+/* Keep logo visible and properly centered in collapsed state */
+#wrapper.toggled .sidebar-heading {
+    padding: 20px 15px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    gap: 0 !important;
+    height: 60px; /* Fixed height for consistency */
+    overflow: hidden; /* Prevent any overflow */
+}
+
+#wrapper.toggled .sidebar-heading span {
+    display: none !important;
+}
+
+#wrapper.toggled .sidebar-heading img {
+    display: block !important;
+    margin: 0 auto !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important; /* Prevent image from shrinking */
 }
 
 #wrapper.toggled .list-group-item {
     text-align: center;
-    padding: 15px 10px;
+    padding: 12px 10px !important; /* Slightly reduced padding */
+    border-left: 4px solid transparent;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 44px; /* Consistent height for all items */
+    position: relative; /* For positioning chevron */
+}
+.list-group-item.active {
+    background-color: #293846 !important;
+    color: white !important;
+    border-left: 4px solid #19aa8d !important;
 }
 
-#wrapper.toggled .list-group-item i {
-    margin-right: 0;
+/* Hide chevron-down icons when sidebar is collapsed */
+#wrapper.toggled .list-group-item .fa-chevron-down {
+    display: none !important;
+}
+
+/* Ensure the main icons remain visible and centered */
+#wrapper.toggled .list-group-item i:not(.fa-chevron-down) {
+    margin-right: 0 !important;
     font-size: 18px;
+    display: block !important;
+    width: 24px; /* Fixed width for consistent centering */
+    text-align: center;
+}
+
+#wrapper.toggled .list-group-item span:not(.fa) {
+    display: none !important;
 }
 
 #wrapper.toggled .submenu {
     display: none !important;
 }
 
+/* Ensure proper spacing for chevron in expanded state */
+.list-group-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.list-group-item .fa-chevron-down {
+    margin-left: auto; /* Push chevron to the right */
+    margin-right: 0;
+}
 /* Remove old sidebar styles */
 aside.sidebar {
     display: none;
@@ -180,6 +240,7 @@ main {
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
+    /* On tablet, sidebar is collapsed by default */
     #sidebar-wrapper {
         width: 70px;
     }
@@ -187,6 +248,10 @@ main {
     #page-content-wrapper {
         width: calc(100% - 70px);
         margin-left: 70px;
+    }
+    
+    .top-bar {
+        left: 70px;
     }
     
     .sidebar-heading,
@@ -207,18 +272,8 @@ main {
     .submenu {
         display: none !important;
     }
-}
-
-@media (max-width: 640px) {
-    #sidebar-wrapper {
-        width: 0;
-    }
     
-    #page-content-wrapper {
-        width: 100%;
-        margin-left: 0;
-    }
-    
+    /* When toggled on tablet, show expanded sidebar */
     #wrapper.toggled #sidebar-wrapper {
         width: 220px;
     }
@@ -228,21 +283,107 @@ main {
         margin-left: 220px;
     }
     
+    #wrapper.toggled .top-bar {
+        left: 220px;
+    }
+    
     #wrapper.toggled .sidebar-heading,
     #wrapper.toggled .list-group-item span:not(.fa) {
         display: block;
     }
+    
+    #wrapper.toggled .list-group-item {
+        text-align: left;
+        padding: 12px 15px;
+    }
+    
+    #wrapper.toggled .list-group-item i {
+        margin-right: 10px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 640px) {
+    /* On mobile, sidebar is hidden by default */
+    #sidebar-wrapper {
+        width: 220px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    #page-content-wrapper {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .top-bar {
+        left: 0;
+    }
+    
+    /* When sidebar is toggled open on mobile */
+    #wrapper.toggled #sidebar-wrapper {
+        transform: translateX(0);
+    }
+    
+    #wrapper.toggled #page-content-wrapper {
+        width: 100%;
+        margin-left: 0;
+        position: relative;
+    }
+    
+    #wrapper.toggled .top-bar {
+        left: 0;
+    }
+    
+    /* Add overlay when sidebar is open on mobile */
+    #wrapper.toggled::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 220px;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        pointer-events: none;
+    }
+}
+.modal.show .modal-dialog{
+    margin: 7em auto !important;
 }
 
 /* Top bar styles */
 .top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f9f9f9;
-  padding: 10px 20px;
-  box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 0;
+    left: 220px; /* same width as sidebar */
+    right: 0;
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: #f9f9f9;
+    padding: 10px 20px;
+    box-shadow: 18px 9px 20px rgba(0, 0, 0, 0.2);
+    transition: left 0.28s ease;
+    z-index: 1100;
 }
+
+#page-content-wrapper {
+    padding-top: 60px;
+}
+
+#wrapper.toggled .top-bar {
+    left: 70px;
+}
+@media (max-width: 640px) {
+    .top-bar {
+        left: 0;
+    }
+}
+
 
 .nav-logo {
   display: flex;
@@ -384,10 +525,25 @@ main {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
         
         .case-item:last-child {
             border-bottom: none;
+        }
+
+        .case-name {
+            flex: 1;
+            min-width: 0;
+            font-weight: 500;
+        }
+
+        .case-fee {
+            flex-shrink: 0;
+            color: #2f4050;
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
         }
         
         .case-actions {
@@ -511,3 +667,320 @@ main {
             z-index: 9999;
             min-width: 250px;
         }
+
+        /* Modal header adjustments to accommodate filter */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#logoutConfirmationModal .title-header {
+    align-items: center !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-top-left-radius: calc(0.3rem - 1px) !important;
+    border-top-right-radius: calc(0.3rem - 1px) !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+    justify-content: space-between !important;
+    padding: 1rem !important;
+}
+.modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: calc(var(--bs-modal-padding) - var(--bs-modal-footer-gap) * .5);
+    background-color: var(--bs-modal-footer-bg);
+    border-top: var(--bs-modal-footer-border-width) solid var(--bs-modal-footer-border-color);
+    border-bottom-right-radius: var(--bs-modal-inner-border-radius);
+    border-bottom-left-radius: var(--bs-modal-inner-border-radius);
+}
+#logoutConfirmationModal .modal-content {
+    background-color: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    display: block !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    width: 800px !important;
+}
+
+/* ============================= */
+/* 🔹 NOTIFICATION STYLES 🔹 */
+/* ============================= */
+.notification-container {
+    position: relative;
+    margin-right: 15px;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #333;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #f9f9f9;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 400px;
+    max-width: 90vw;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    display: none;
+    z-index: 9999;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.notification-actions .btn-link {
+    padding: 2px 6px;
+    font-size: 13px;
+    color: #666;
+    text-decoration: none;
+    border: 1px solid  #666; 
+    border-radius: 4px;
+}
+
+.notification-actions .btn-link:hover {
+    color: #007bff;
+    border-color: #007bff;
+    text-decoration: none;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #007bff;
+}
+
+.notification-item.unread:hover {
+    background-color: #e6f2ff;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notification-time i {
+    font-size: 10px;
+}
+
+.notification-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.notification-actions-row .btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.notification-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+/* Scrollbar styling for notification list */
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        width: 320px;
+        right: -50px;
+    }
+    
+    .notification-item {
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: 280px;
+        right: -80px;
+    }
+    
+    .notification-container {
+        margin-right: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .case-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .case-fee {
+        text-align: left;
+    }
+}

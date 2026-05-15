@@ -531,3 +531,13 @@ body {
     background-color: #f9fafb;
 }
 
+.day.disabled,
+.time-slot.disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+}
+.branch-info{
+    height:3em !important;
+    width:9em !important;
+   font-size:15px;
+}

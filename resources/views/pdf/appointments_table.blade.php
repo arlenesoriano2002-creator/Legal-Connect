@@ -59,9 +59,12 @@
 </head>
 <body>
     <div class="header">
-        <h1>LegalConnect - Appointments Backup</h1>
+        <h1>LegalConnect - Appointment Logs Backup</h1>
         <div class="info">
             Filter: {{ ucfirst($filter) }} | 
+            @if(isset($branch) && $branch)
+            Branch: {{ $branch }} | 
+            @endif
             Generated: {{ $generated_at }} | 
             Total Records: {{ $total_records }}
         </div>
@@ -77,6 +80,7 @@
                 <th>Address</th>
                 <th>Category</th>
                 <th>Case Name</th>
+                <th>Branch Choosed</th> <!-- ADDED THIS COLUMN -->
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
@@ -95,6 +99,7 @@
                 <td>{{ $appointment['address'] }}</td>
                 <td>{{ $appointment['category'] }}</td>
                 <td>{{ $appointment['case_name'] }}</td>
+                <td>{{ $appointment['branch'] ?? 'N/A' }}</td> <!-- ADDED THIS DATA CELL -->
                 <td>{{ $appointment['selected_date'] }}</td>
                 <td>{{ $appointment['selected_time'] }}</td>
                 <td class="status-{{ strtolower($appointment['appointment_approval']) }}">
