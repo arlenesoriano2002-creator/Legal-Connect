@@ -1,11 +1,19 @@
 {
-<<<<<<< HEAD
   "$schema": "https://railpack.com/schema.json",
   "phpExtensions": [
-    "zip"
+    "zip",
+    "ctype",
+    "curl",
+    "dom",
+    "fileinfo",
+    "filter",
+    "hash",
+    "mbstring",
+    "openssl",
+    "pcre",
+    "pdo",
+    "session",
+    "tokenizer",
+    "xml"
   ]
-=======
-  "$schema": "https://schema.railpack.com",
-  "phpExtensions": ["zip"]
->>>>>>> f9360a0ad54a665de7d376981b01cf8e4b4c1ec0
 }
