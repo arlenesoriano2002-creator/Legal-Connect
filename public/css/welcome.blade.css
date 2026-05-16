@@ -288,21 +288,26 @@ header {
     opacity: 0.3;
     display: block;
   }
-  .hero .container1 {
-    position: absolute;
-    inset: 0;
-    max-height: 1000px;
+.hero .container1 {
+    position: relative;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 8em 1.5rem 0 1.5rem;
+    padding: 10rem 1.5rem 6rem 1.5rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    font-feature-settings: 'liga' off;
-   
-  }
+    z-index: 2;
+}
+.hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
   .hero .top-bar {
     position: absolute;
     top: 1.5rem;
