@@ -51,9 +51,9 @@ class UserRegisterController extends Controller
         try {
             Mail::raw("Your OTP code is: {$otp}", function ($message) use ($request) {
                 // Ensure the SMTP authenticated account is used as the From address so Gmail allows sending
-                $message->from(env('MAIL_USERNAME'), config('mail.from.name'))
-                        ->to($request->email)
-                        ->subject('Your OTP Code');
+                $message->from(config('mail.from.address'), config('mail.from.name'))
+                    ->to($request->email)
+                    ->subject('Your OTP Code');
             });
             
             // Log successful OTP sending
